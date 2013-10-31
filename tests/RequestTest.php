@@ -10,14 +10,14 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         $request = new Request;
-        $this->assertEquals($request->server, 'localhost');
-        $this->assertEquals($request->method, 'GET');
-        $this->assertEquals($request->pathUri, __DIR__ . "/");
+        $this->assertEquals($request['server'], 'localhost');
+        $this->assertEquals($request['method'], 'GET');
+        $this->assertEquals($request['pathUri'], __DIR__ . "/");
 
         $request = new Request;
-        $this->assertEquals($request->server, 'localhost');
-        $this->assertEquals($request->method, 'GET');
-        $this->assertEquals($request->pathUri, __DIR__ . "/");
+        $this->assertEquals($request['server'], 'localhost');
+        $this->assertEquals($request['method'], 'GET');
+        $this->assertEquals($request['pathUri'], __DIR__ . "/");
     }
 
     public function testRequestEndPoints()
@@ -27,21 +27,21 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         $request = new Request;
         
-        $this->assertEquals($request->endPoint, array());
+        $this->assertEquals($request['endPoint'], array());
 
         ## 2
         $_SERVER['REQUEST_URI']    = '/members/123';
 
         $request = new Request;
 
-        $this->assertEquals($request->endPoint, array('members','123'));
+        $this->assertEquals($request['endPoint'], array('members','123'));
 
         ## 3
         $_SERVER['REQUEST_URI']    = '/members';
 
         $request = new Request;
 
-        $this->assertEquals($request->endPoint, array('members'));
+        $this->assertEquals($request['endPoint'], array('members'));
 
     }
 
@@ -53,7 +53,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         $request = new Request;
 
-        $this->assertEquals($request->virtualHost, array());
+        $this->assertEquals($request['virtualHost'], array());
 
     }
 

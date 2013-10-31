@@ -90,17 +90,30 @@ class Helpers
 
     /**
      * [namespaceToStack description]
-     * @param  [type] $uri
-     * @return [type]
+     * @param  string|array $namespace
+     * @return array
      */
-    public static function namespaceToStack($uri)
+    public static function namespaceToStack($namespace)
     {
-        return array_values(array_filter(explode('\\', $uri)));
+        if (is_string($namespace)) {
+            return array_values(array_filter(explode('\\', $namespace)));
+        } else {
+            return $namespace;
+        }
     }
 
+    /**
+     * [uriToStack description]
+     * @param  string|array $uri
+     * @return array
+     */
     public static function uriToStack($uri)
     {
-        return array_values(array_filter(explode('/', $uri)));
+        if (is_string($uri)) {
+            return array_values(array_filter(explode('/', $uri)));
+        } else {
+            return $uri;
+        }
     }
 
     /**

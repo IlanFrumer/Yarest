@@ -8,38 +8,9 @@ namespace Yarest;
  * @package Yarest
  * @author Ilan Frumer <ilanfrumer@gmail.com>
  */
-class Request
+class Request extends ReadOnlyArray
 {
-    /**
-     * [$server description]
-     * @var [type]
-     */
-    public $server;
-
-    /**
-     * [$method description]
-     * @var [type]
-     */
-    public $method;
-
-    /**
-     * [$virtualHost description]
-     * @var [type]
-     */
-    public $virtualHost;
-
-    /**
-     * [$endPoint description]
-     * @var [type]
-     */
-    public $endPoint;
-
-    /**
-     * [$pathUri description]
-     * @var [type]
-     */
-    public $pathUri;
-
+    
     /**
      * [server description]
      * @param  [type] $property
@@ -73,7 +44,7 @@ class Request
         $requestUri = parse_url($request_uri, PHP_URL_PATH);
 
         // absolute path of the root folder
-        $pathUri = $document_root.$rootUri;
+        $path = $document_root.$rootUri;
 
         // relative to root folder
         $endPointUri = Helpers::stripURI($requestUri, $rootUri);
@@ -84,11 +55,10 @@ class Request
         // array representation of the virtual host
         $virtualHost = Helpers::uriToStack($rootUri);
 
-        $this->server          = $server;
-        $this->pathUri         = $pathUri;
-        $this->method          = $request_method;
-        $this->virtualHost     = $virtualHost;
-        $this->endPoint        = $endPoint;
-
+        $this->values['server']      = $server;
+        $this->values['path']        = $path;
+        $this->values['method']      = $request_method;
+        $this->values['virtualHost'] = $virtualHost;
+        $this->values['endPoint']    = $endPoint;
     }
 }

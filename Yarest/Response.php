@@ -79,13 +79,11 @@ class Response
      */
     public function __construct()
     {
-        ob_start();
+        // ob_start();
 
         set_exception_handler(function ($exception) {
             $this->status = '500 Application Level Exception';
             $this->type   = 'text/html';
-
-            var_dump($exception);
             die();
         });
 
@@ -93,15 +91,6 @@ class Response
             
             $this->status = '500 Application Level Error';
             $this->type   = 'text/html';
-
-            $error = array();
-            $error['number']  = $a;
-            $error['message'] = $b;
-            $error['file']    = $c;
-            $error['line']    = $d;
-            $error['context'] = $e;
-            var_dump($error);
-            
             die();
         });
     }
@@ -188,7 +177,7 @@ class Response
     public function __toString()
     {
         $this->setHeaders();
-        flush();
+        // flush();
 
         if (is_array($this->body)) {
             $this->body = json_encode($this->body);

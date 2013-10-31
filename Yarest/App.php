@@ -47,35 +47,63 @@ class App
      */
     public function router($pattern, $namespace, $folder = array())
     {
+        $router  = array();
+        $invoker = new Invoker();
         
-        $pattern   = Helpers::stripAsterisk($pattern);
-        $pattern   = Helpers::uriToStack($pattern);
+        $pattern = Helpers::stripAsterisk($pattern);
 
-        if (is_string($namespace)) {
-            $namespace = Helpers::namespaceToStack($namespace);
-        }
+        $router['pattern']   = Helpers::uriToStack($pattern);
+        $router['namespace'] = Helpers::namespaceToStack($namespace);
+        $router['folder']    = Helpers::uriToStack($folder);
 
-        if (is_string($folder)) {
-            $folder    = Helpers::uriToStack($folder);
-        }
+        $router['invoker']   = $invoker;
         
-        $router = new Router($this, $pattern, $namespace, $folder);
+        ###
+
+        // $injector = function (Resource $resource) use ($namespace) {
+            
+        //     $namespace_string = Helpers::stackToNamespace($namespace);
+
+        //     $resource['docs'] = $resource->share(function () use ($namespace_string) {
+
+        //         $absolute_path = $this->request['pathUri'];
+        //         $alias         = $this->config['alias'];
+        //         $docs = new Docs($absolute_path, $namespace_string, $alias);
+        //         return $docs->generateAllMethods();
+        //     });
+
+               
+        // };
+
+        ####
+        
+        // $router = new Router($pattern, $namespace, $folder);
 
         $this->routers[] = $router;
 
-        return $router;
+        return $invoker;
     }
 
     /**
      * Iterating all routers until matched
      */
-
     public function run()
     {
+
         while ($router = array_shift($this->routers)) {
-            if ($router->run()) {
-                return;
+
+            $endpoint = Dispatch::matchPattern($this->request, $router);
+
+            if (!$endpoint) {
+                continue;
             }
+
+            $loader = Dispatch::loadNamespace($root_path, $router);
+
+            $another  = Dispatch::matchClass($this->config, $endpoint, $router);
+
+
+            $router['invoker']->invoke($resurce);
         }
     }
 

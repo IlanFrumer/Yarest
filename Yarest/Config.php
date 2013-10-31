@@ -10,24 +10,18 @@ namespace Yarest;
  * @package Yarest
  * @author Ilan Frumer <ilanfrumer@gmail.com>
  */
-class Config implements \ArrayAccess
+class Config extends ReadOnlyArray
 {
-    /**
-     * [$config description]
-     * @var array
-     */
-    private $config = array();
-
     /**
      * [setDefaults description]
      */
     private function setDefaults()
     {
-        $this->config['root_class'] = 'Root';
+        $this->values['root_class'] = 'Root';
 
-        $this->config['debug'] = true;
+        $this->values['debug'] = true;
 
-        $this->config['alias'] = array(
+        $this->values['alias'] = array(
 
             "all"    => "GET",
             "find"   => "GET",
@@ -59,30 +53,10 @@ class Config implements \ArrayAccess
                 continue;
             }
             if (is_array($value)) {
-                $this->config[$key] = array_merge($this->config[$key], $value);
+                $this->values[$key] = array_merge($this->values[$key], $value);
             } else {
-                $this->config[$key] = $value;
+                $this->values[$key] = $value;
             }
         }
-    }
-
-    public function offsetSet($offset, $value)
-    {
-        throw new Exception\ReadOnlyException();
-    }
-
-    public function offsetExists($offset)
-    {
-        return isset($this->config[$offset]);
-    }
-
-    public function offsetUnset($offset)
-    {
-        throw new Exception\ReadOnlyException();
-    }
-
-    public function offsetGet($offset)
-    {
-        return isset($this->config[$offset]) ? $this->config[$offset] : null;
     }
 }
