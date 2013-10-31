@@ -12,6 +12,6 @@
     <ignore>Yarest/ClassLoader.php</ignore>
   </files>
   <transformations>
-    <template name="responsive-twig" />
+    <template name="new-black" />
   </transformations>
 </phpdoc>

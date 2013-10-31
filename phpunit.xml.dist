@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         bootstrap="tests/bootstrap.php"
+         stopOnFailure="false">
+
+    <testsuites>
+        <testsuite name="Yarest Test Suite">
+            <directory>tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <logging>
+        <log type="coverage-text" target="php://stdout" showUncoveredFiles="true"/>
+    </logging>
+ 
+    <filter>
+      <blacklist>
+        <directory suffix=".php">vendor</directory>
+      </blacklist>
+      <whitelist>
+        <directory suffix=".php">Yarest</directory>
+        <exclude>
+            <file>Yarest/Pimple.php</file>
+            <file>Yarest/ClassLoader.php</file>
+        </exclude>
+      </whitelist>      
+    </filter>
+</phpunit>

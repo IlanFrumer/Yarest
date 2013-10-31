@@ -1,6 +1,11 @@
 <?php
 
-require_once __DIR__ . "/../vendor/autoload.php";
+$autoload = __DIR__. "/../vendor/autoload.php";
+
+if (! @include_once $autoload) {
+    shell_exec("php ". __DIR__. "/../bin/composer.phar install");
+    require_once $autoload;
+}
 
 $_SERVER['REQUEST_URI']    = '/';
 $_SERVER['REQUEST_METHOD'] = 'GET';

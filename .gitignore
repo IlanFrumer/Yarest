@@ -1,4 +1,6 @@
-/vendor/
-/docs/
+vendor/
+docs/
+logs/
+
 phpdoc.xml
 phpunit.xml
