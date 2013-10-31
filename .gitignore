@@ -1,0 +1,4 @@
+/vendor/
+/docs/
+phpdoc.xml
+phpunit.xml

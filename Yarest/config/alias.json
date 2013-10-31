@@ -1,0 +1,13 @@
+{
+	"all"     : "GET",
+	"find"    : "GET",
+	"get"     : "GET",
+	"read"    : "GET",
+	"post"    : "POST",
+	"create"  : "POST",
+	"put"     : "PUT",
+	"update"  : "PUT",
+	"delete"  : "DELETE",
+	"remove"  : "DELETE",
+	"trash"   : "DELETE"
+}

@@ -1,0 +1,18 @@
+{
+    "name": "yarest/yarest",
+    "description": "Yarest is a RESTful Framework",
+    "keywords": ["yarest","rest","router","api"],
+    "homepage": "http://github.com/ilanfrumer/yarest",
+    "authors": [
+        {
+            "name": "Ilan Frumer",
+            "email": "ilanfrumer@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-0": { "Yarest": "." }
+    }
+}
