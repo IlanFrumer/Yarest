@@ -14,7 +14,7 @@ class Docs
      * [$methods description]
      * @var array
      */
-    public $methods = array();
+    private $methods = array();
 
     /**
      * [__construct description]
@@ -25,21 +25,12 @@ class Docs
     public function __construct($absolute_path, $namespace, $aliases)
     {
 
-        // request -> virtualHost
-        // request -> server name
-        // config  -> aliases
-        $classes = $this->traverseClasses($absolute_path, $namespace);
+        $classes = self::traverseClasses($absolute_path, $namespace);
         
         foreach ($classes as $class) {
-            $this->getMethods($class, $aliases);
+            $this->traverseMethods($class, $aliases);
         }
 
-        // $this->server        = $app->request->server;
-        // $this->aliases       = $app->config['alias'];
-        // $this->path          = $path;
-        // $this->namespace     = $namespace;
-        // $this->root_stack    = $app->request->root_stack;
-        // $this->pattern_stack = $pattern_stack;
     }
 
     /**
@@ -48,7 +39,7 @@ class Docs
      * @param  string $namespace the namespace to traverse
      * @return array Returns a list of the namespace classes
      */
-    private function traverseClasses($absolute_path, $namespace)
+    private static function traverseClasses($absolute_path, $namespace)
     {
         $dir  = $absolute_path . $namespace;
 
@@ -74,7 +65,7 @@ class Docs
      * @param  string $class
      * @param  array  $aliases a list of valid method names
      */
-    private function getMethods($class, array $aliases)
+    private function traverseMethods($class, array $aliases)
     {
         if (!class_exists($class)) {
             return;
@@ -87,7 +78,53 @@ class Docs
             return $method->class == $class && array_key_exists($method->name, $aliases);
         }));
 
+
         $this->methods = array_merge($this->methods, $class_methods);
+    }
+
+    /**
+     * [generateAllMethods description]
+     * @return [type] [description]
+     */
+    public function generateAllMethods()
+    {
+        $docs = array();
+
+        foreach ($this->methods as $method) {
+            $docs['methods'][] = self::generateMethod($method);
+        }
+
+        return $docs;
+    }
+
+    /**
+     * [generateMethod description]
+     * @param  ReflectionMethod $method [description]
+     * @return [type]                   [description]
+     */
+    public static function generateMethod(\ReflectionMethod $method)
+    {
+        $doc = array();
+
+        $doc['name']  = $method->name;
+        $doc['class'] = $method->class;
+        $doc['comments']  = $method->getDocComment();
+        $doc['filename']  = $method->getFileName();
+
+        foreach ($method->getParameters() as $parameter) {
+            
+            $p = array();
+
+            $p['name'] = $parameter->name;
+            $p['default'] = $parameter->getDefaultValue();
+            $p['position'] = $parameter->getPosition();
+            $p['byValue'] = $parameter->canBePassedByValue();
+
+            $doc['parameters'][] = $p;
+
+        }
+
+        return $doc;
     }
 
     // public function methodToURIStack($method)
@@ -133,9 +170,7 @@ class Docs
     //         $end_point['fileName']    = $method->getFileName();
     //         */
             
-    //         foreach ($method->getParameters() as $parameter) {
-    //             // $end_point['parameters'][] = $parameter;
-    //         }
+
     //         $docs['methods'][] = $end_point;
     //     }
 
@@ -144,10 +179,10 @@ class Docs
     
     /**
      * [__string description]
-     * @todo implementation
      * @return [type]
      */
     public function __string()
     {
+        // TODO: implementation
     }
 }

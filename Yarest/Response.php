@@ -72,6 +72,39 @@ class Response
      * @var string
      */
     private $body    = '';
+
+
+    /**
+     * [__construct description]
+     */
+    public function __construct()
+    {
+        ob_start();
+
+        set_exception_handler(function ($exception) {
+            $this->status = '500 Application Level Exception';
+            $this->type   = 'text/html';
+
+            var_dump($exception);
+            die();
+        });
+
+        set_error_handler(function ($a, $b, $c, $d, $e) {
+            
+            $this->status = '500 Application Level Error';
+            $this->type   = 'text/html';
+
+            $error = array();
+            $error['number']  = $a;
+            $error['message'] = $b;
+            $error['file']    = $c;
+            $error['line']    = $d;
+            $error['context'] = $e;
+            var_dump($error);
+            
+            die();
+        });
+    }
     
     /**
      * [setStatus description]

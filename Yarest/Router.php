@@ -83,6 +83,8 @@ class Router
         $this->namespace = $namespace;
         $this->pattern   = $pattern;
         $this->folder    = $folder;
+
+        $this->callbacks['errors'] = array();
     }
 
     /**
@@ -183,7 +185,7 @@ class Router
     {
         $this->app->response->setStatus('200');
 
-        $resource = new $this->class_name();
+        $resource = new $this->class_name;
 
         $docComments = $this->matchedMethod->getDocComment();
 
@@ -198,7 +200,15 @@ class Router
             $namespace     = Helpers::stackToNamespace($this->namespace);
             $aliases       = $this->app->config['alias'];
 
-            return new Docs($this->app->request->pathUri, $namespace, $aliases);
+            $docs = new Docs($this->app->request->pathUri, $namespace, $aliases);
+            
+            return $docs->generateAllMethods();
+        });
+
+        $resource['doc'] = $resource->share(function () {
+                
+            return Docs::generateMethod($this->matchedMethod);
+
         });
 
         /*
@@ -208,14 +218,37 @@ class Router
         $resource->fields
 
         */
+       
+        try {
 
-        if (is_callable($this->app->injector)) {
-            call_user_func_array($this->app->injector, array($resource));
+            # invoke user defined before method
+            
+            if (array_key_exists('before', $this->callbacks)) {
+                call_user_func_array($this->callbacks['before'], array($resource));
+            }
+
+            # invoke class matched method
+            
+            $body = $this->matchedMethod->invokeArgs($resource, $this->elements);
+
+            # invoke user defined after method
+            
+            if (array_key_exists('after', $this->callbacks)) {
+                call_user_func_array($this->callbacks['after'], array($resource));
+            }
+
+        } catch (\Exception $error) {
+
+            $this->app->response->setStatus('500');
+            
+            if (array_key_exists('error', $this->callbacks)) {
+                call_user_func_array($this->callbacks['error'], array($error));
+            }
+            
+            echo "error";
         }
 
-        $body = $this->matchedMethod->invokeArgs($resource, $this->elements);
-        
-        if ($body) {
+        if (isset($body)) {
             $this->app->response->setBody($body);
         }
     }
@@ -237,32 +270,48 @@ class Router
     
     /**
      * [before description]
-     * @param  callable $callback
-     * @return [type]
+     * @param  object $callable
+     * @return Router the same instance for method chaining
      */
-    public function before(callable $callback)
+    public function before($callable)
     {
-        $this->callbacks['before'] = $callback;
+        if (!is_object($callable) || !method_exists($callable, '__invoke')) {
+            throw new \InvalidArgumentException('Service definition is not a Closure or invokable object.');
+        }
+        $this->callbacks['before'] = $callable;
+
+        return $this;
     }
 
     /**
      * [after description]
-     * @param  callable $callback
-     * @return [type]
+     * @param  object $callable
+     * @return Router the same instance for method chaining
      */
-    public function after(callable $callback)
+    public function after($callable)
     {
-        $this->callbacks['after'] = $callback;
+        if (!is_object($callable) || !method_exists($callable, '__invoke')) {
+            throw new \InvalidArgumentException('Service definition is not a Closure or invokable object.');
+        }
+
+        $this->callbacks['after'] = $callable;
+        return $this;
     }
 
     /**
-     * [error description]
-     * @param  callable $callback
-     * @return [type]
+     * [error description].
+     * 
+     * Allow Multiple errors with differnt Exception class
+     * @param  object $callable
+     * @return Router the same instance for method chaining
      */
-    public function error(callable $callback)
+    public function error($callable)
     {
-        $this->callbacks['error'] = $callback;
+        if (!is_object($callable) || !method_exists($callable, '__invoke')) {
+            throw new \InvalidArgumentException('Service definition is not a Closure or invokable object.');
+        }
+        $this->callbacks['error'] = $callable;
+        return $this;
     }
     
     /**

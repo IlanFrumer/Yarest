@@ -14,7 +14,6 @@ class App
     public $config;
     public $request;
     public $response;
-    public $injector = null;
 
     public $routers = array();
 
@@ -24,23 +23,15 @@ class App
      * @param array $config pass user configuration to override defaults
      */
     
-    public function __construct(array $config = array())
+    public function __construct($config = array())
     {
-        ob_start();
+        
+        # Response must be first because it registers an error handler
+        $this->response = new Response();
 
         $this->request  = new Request();
-        $this->response = new Response();
+                
         $this->config   = new Config($config);
-    }
-
-    /**
-     * Passing the callback which the resource should be injected.
-     * 
-     * @param callable $callback User defined callback.
-     */
-    public function inject(callable $callback)
-    {
-        $this->injector = $callback;
     }
 
     /**

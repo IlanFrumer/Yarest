@@ -124,22 +124,6 @@ class Helpers
     }
 
     /**
-     * [getConfig description]
-     * @param  [type] $file
-     * @return [type]
-     */
-    public static function getConfig($file)
-    {
-        $path = __DIR__."/config/$file.json";
-
-        if (file_exists($path)) {
-            return json_decode(file_get_contents($path), true);
-        } else {
-            throw new \Exception("Config file: $file.json not found", 1);
-        }
-    }
-
-    /**
      * [divideStack description]
      * @param  [type] $stack
      * @param  [type] $namespace

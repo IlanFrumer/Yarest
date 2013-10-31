@@ -50,7 +50,7 @@ class Request
         if (isset($_SERVER[$property])) {
             return $_SERVER[$property];
         } else {
-            throw new \Exception('$_SERVER['."'".$property."'".'] must be set', 1);
+            throw new Exception\ServerMissingException('$_SERVER['."'".$property."'".'] must be set', 1);
         }
     }
 

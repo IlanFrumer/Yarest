@@ -104,19 +104,6 @@ class HelpersTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(Helpers::stackToURI($stack), 'Yarest');
     }
 
-    public function testStaticMethodGetConfig()
-    {
-        $alias    = Helpers::getConfig('alias');
-        $defaults = Helpers::getConfig('defaults');
-
-        $this->assertArrayHasKey('root_class', $defaults);
-        $this->assertArrayHasKey('get', $alias);
-        $this->assertArrayHasKey('post', $alias);
-        $this->assertArrayHasKey('delete', $alias);
-        $this->assertArrayHasKey('put', $alias);
-
-    }
-
     public function testStaticMethodDivideStack()
     {
 

@@ -56,4 +56,13 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($request->virtualHost, array());
 
     }
+
+    /**
+     * @expectedException \Yarest\Exception\ServerMissingException
+     */
+    public function testRequestServerMissing()
+    {
+        $_SERVER = array();
+        $config = new Request;
+    }
 }
