@@ -43,7 +43,8 @@ class Docs
     {
         $dir  = $absolute_path . $namespace;
 
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir), \RecursiveIteratorIterator::SELF_FIRST);
+        $directory_iterator = new \RecursiveDirectoryIterator($dir);
+        $iterator = new \RecursiveIteratorIterator($directory_iterator, \RecursiveIteratorIterator::SELF_FIRST);
 
         $classes = array();
 

@@ -56,7 +56,7 @@ class Helpers
 
         if (empty($arr1)) {
             return $arr2;
-        } else if (empty($arr2)) {
+        } elseif (empty($arr2)) {
             return $arr1;
         }
 

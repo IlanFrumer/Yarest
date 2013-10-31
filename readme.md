@@ -16,16 +16,3 @@
 
 
 ## Exceptions
-
-\Yarest\Pimple -> InvalidArgumentException
-
-\Yarest\Request -> Exception
-
-\YarestRouter -> Exception
-
-user closures -> PDOException , Exception , InvalidArgumentException
-
-
-Missing argument
-Undefined variable
-Type hint
