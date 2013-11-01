@@ -9,6 +9,15 @@ namespace Yarest;
  * @author Ilan Frumer <ilanfrumer@gmail.com>
  */
 
+/**
+ * Annotations:
+ *
+ *
+ * Alias:
+ *
+ *
+ * Arguments:
+ */
 abstract class Resource extends \Pimple
 {
 

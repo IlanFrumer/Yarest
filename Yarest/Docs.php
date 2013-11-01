@@ -131,7 +131,7 @@ class Docs
     // public function methodToURIStack($method)
     // {
         
-    //     $collections = Helpers::stripURI($method->class, $this->namespace);
+    //     $collections = Helpers::substrURI($method->class, $this->namespace);
         
     //     $collections = Helpers::uriToStack($collections, '\\');
         

@@ -11,16 +11,6 @@ namespace Yarest\Helpers;
 class Uri
 {
     /**
-     * [fix description]
-     * @param  [type] $string
-     * @return [type]
-     */
-    private static function fix($string)
-    {
-        return ucfirst(strtolower($string));
-    }
-
-    /**
      * [toSlash description]
      * @param  [type] $string
      * @return [type]
@@ -46,12 +36,12 @@ class Uri
     }
 
     /**
-     * [stripURI description]
+     * [substrURI description]
      * @param  [type] $uri
      * @param  [type] $root
      * @return [type]
      */
-    public static function stripURI($uri, $root)
+    public static function substrURI($uri, $root)
     {
         if ($root == '/') {
             return $uri;
@@ -61,67 +51,77 @@ class Uri
     }
 
     /**
-     * [namespaceToStack description]
+     * [namespaceToArray description]
      * @param  string|array $namespace
      * @return array
      */
-    public static function namespaceToStack($namespace)
+    public static function namespaceToArray($namespace)
     {
         if (is_string($namespace)) {
             return array_values(array_filter(explode('\\', $namespace)));
-        } else {
+        } elseif (is_array($namespace)) {
             return $namespace;
+        } else {
+            throw new \InvalidArgumentException("Expected namespace to be an array or a string", 1);        
         }
     }
 
     /**
-     * [uriToStack description]
+     * [uriToArray description]
      * @param  string|array $uri
      * @return array
      */
-    public static function uriToStack($uri)
+    public static function uriToArray($uri)
     {
         if (is_string($uri)) {
             return array_values(array_filter(explode('/', $uri)));
-        } else {
+        } elseif (is_array($uri)) {
             return $uri;
+        } else {
+            throw new \InvalidArgumentException("Expected uri to be an array or a string", 1);        
         }
     }
 
     /**
-     * [stackToNamespace description]
-     * @param  array  $stack
+     * [arrayToNamespace description]
+     * @param  array  $array
      * @return [type]
      */
-    public static function stackToNamespace(array $stack)
+    public static function arrayToNamespace(array $array)
     {
-        return implode('\\', $stack);
+        $array = array_map(function ($el) {
+            return ucfirst(strtolower($el));
+        }, $array);
+        return implode('\\', $array);
     }
 
     /**
-     * [stackToURI description]
-     * @param  array  $stack
+     * [arrayToURI description]
+     * @param  array  $array
      * @return [type]
      */
-    public static function stackToURI(array $stack)
+    public static function arrayToURI(array $array)
     {
-        return implode('/', $stack);
+        return implode('/', $array);
     }
 
     /**
-     * [divideStack description]
-     * @param  [type] $stack
+     * [uriToNamespace description]
+     * @param  [type] $array
      * @param  [type] $namespace
      * @param  [type] $elements
      * @return [type]
      */
-    public static function divideStack($stack, &$namespace, &$elements)
+    public static function uriToNamespace($array, &$namespace, &$elements)
     {
-        foreach ($stack as $k => $v) {
+        foreach ($array as $k => $v) {
+            
+            $v = ucfirst(strtolower($v));
+
             if ($k % 2 == 0) {
-                $namespace[] = self::fix($v);
+                $namespace[] = $v;
             } else {
-                $elements[]  = self::fix($v);
+                $elements[]  = $v;
             }
         }
     }

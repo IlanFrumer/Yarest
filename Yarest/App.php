@@ -61,8 +61,6 @@ class App
 
         $route  = new Route($pattern, $namespace, $folder);
 
-        $route->path = $this->request['path'] . $route->folder;
-
         $router = new Router($this->config, $this->request, $this->response, $route);
         
         $this->routers[] = $router;

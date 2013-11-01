@@ -47,13 +47,13 @@ class Request extends ReadOnlyArray
         $path = $document_root.$rootUri;
 
         // relative to root folder
-        $endPointUri = Helpers\Uri::stripURI($requestUri, $rootUri);
+        $endPointUri = Helpers\Uri::substrURI($requestUri, $rootUri);
 
         // array representation of the end point
-        $endPoint    = Helpers\Uri::uriToStack($endPointUri);
+        $endPoint    = Helpers\Uri::uriToArray($endPointUri);
 
         // array representation of the virtual host
-        $virtualHost = Helpers\Uri::uriToStack($rootUri);
+        $virtualHost = Helpers\Uri::uriToArray($rootUri);
 
         $this->values['server']      = $server;
         $this->values['path']        = $path;

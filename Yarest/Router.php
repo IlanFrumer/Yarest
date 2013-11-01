@@ -152,30 +152,30 @@ class Router
     {
         # Phase 1: match route with request end point
 
-        $this->route->matchPattern($this->request['endpoint']);
+        $endpoint = $this->route->matchPattern($this->request['endpoint']);
 
-        if (!$this->route->endpoint) {
+        if (!$endpoint) {
             return false;
         }
 
         # Phase 2: auto resolve target class and prepare elements
 
-        $this->route->resolveClass($this->config['base_class']);
+        $this->route->resolveClass($endpoint, $this->config['base_class']);
 
         ## Phase 3: register namespace
 
-        $loader = $this->route->loadNamespace();
+        $loader = Helpers\Loader::loadNamespace($this->request['path'], $this->route->namespace, $this->route->folder);
 
         ## Phase 4: check if class is valid , if not unregister
 
-        if (!$this->route->checkClass()) {
+        if (!Helpers\Loader::checkValidClass($this->route->class, '\Yarest\Resource')) {
             $loader->unregister();
             return false;
         }
 
         ## Phase 5: looks for valid methods in the class (owned , public , alias), if not unregister
 
-        if (!$this->route->findMethods($this->config['alias'])) {
+        if (!$this->route->findMethods($this->config['alias'], $this->request['method'])) {
             $loader->unregister();
             return false;
         }

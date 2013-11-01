@@ -29,18 +29,6 @@ class Route
     public $folder;
 
     /**
-     * [$path description]
-     * @var string
-     */
-    public $path;
-
-    /**
-     * [$endpoint description]
-     * @var array
-     */
-    public $endpoint;
-
-    /**
      * [$class description]
      * @var string
      */
@@ -50,19 +38,19 @@ class Route
      * [$elements description]
      * @var array
      */
-    public $elements = array();
+    public $elements;
 
     /**
      * [$allowedMethods description]
      * @var array
      */
-    public $allowedMethods = array();
+    public $allowedMethods;
 
     /**
      * [$matchedMethod description]
      * @var ReflectionMethod
      */
-    public $matchedMethod = null;
+    public $matchedMethod;
 
     /**
      * [__construct description]
@@ -73,13 +61,13 @@ class Route
     public function __construct($pattern, $namespace, $folder)
     {
         $pattern   = Helpers\Uri::stripAsterisk($pattern);
-        $pattern   = Helpers\Uri::uriToStack($pattern);
+        $pattern   = Helpers\Uri::uriToArray($pattern);
 
-        $namespace = Helpers\Uri::namespaceToStack($namespace);
-        $namespace = Helpers\Uri::stackToNamespace($namespace);
+        $namespace = Helpers\Uri::namespaceToArray($namespace);
+        $namespace = Helpers\Uri::arrayToNamespace($namespace);
 
-        $folder    = Helpers\Uri::uriToStack($folder);
-        $folder    = Helpers\Uri::stackToURI($folder);
+        $folder    = Helpers\Uri::uriToArray($folder);
+        $folder    = Helpers\Uri::arrayToURI($folder);
 
         $this->pattern   = $pattern;
         $this->namespace = $namespace;
@@ -90,77 +78,63 @@ class Route
     /**
      * [matchPattern description]
      * @param  array $endpoint
+     * @return array|false [description]
      */
     public function matchPattern(array $endpoint)
     {
-        $this->endpoint = Helpers\Pattern::match($endpoint, $this->route->pattern);
+        return Helpers\Pattern::match($endpoint, $this->pattern);        
     }
 
     /**
      * [resolveClass description]
      * @param  string $base_class
      */
-    public function resolveClass($base_class)
+    public function resolveClass($endpoint, $base_class)
     {
-        if (empty($this->endpoint)) {
+        $this->elements = array();
+
+        if (empty($endpoint)) {
 
             // TODO: check namespace empty case
             // TODO: check base_class not valid
             // TODO: config validation method
 
-            $this->class = $this->namespace . $base_class;
+            $this->class = $this->namespace . "\\" . $base_class;
 
         } else {
 
             $class = array();
 
-            Helpers::divideStack($this->route->endpoint, $class, $this->route->elements);
+            Helpers\Uri::uriToNamespace($endpoint, $class, $this->elements);            
 
-            $this->class = $this->namespace . Helpers\Uri::stackToNamespace($class);
+            $this->class = $this->namespace . "\\" . Helpers\Uri::arrayToNamespace($class);
         }
-    }
-
-    /**
-     * [loadNamespace description]
-     */
-    public function loadNamespace()
-    {
-        $loader = new ClassLoader();
-        $loader->add($this->namespace, $this->path);
-        $loader->register();
-
-        return $loader;
-    }
-
-    /**
-     * [checkClass description]
-     * @return boolean
-     */
-    public function checkClass()
-    {
-        return class_exists($this->class) && is_subclass_of($this->class, '\Yarest\Resource');
     }
 
     /**
      * [findMethods description]
      * @param  array $alias
+     * @param  string $httpMethod
      * @return boolean
      */
-    public function findMethods($alias)
+    public function findMethods($alias, $httpMethod)
     {
         $ref = new \ReflectionClass($this->class);
         $methods = Helpers\Reflection::getOwnPublicMethods($ref);
-        $numberofparameters = count($this->route->elements);
+        $numberofparameters = count($this->elements);
+
+        $this->matchedMethod = null;
+        $this->allowedMethods = array();
 
         foreach ($methods as $method) {
-            if (array_key_exists($method->name, $this->config['alias'])) {
+            if (array_key_exists($method->name, $alias)) {
                 if ($method->getnumberofparameters() == $numberofparameters) {
                     
-                    $verb = $this->config['alias'][$method->name];
+                    $verb = $alias[$method->name];
 
                     $this->allowedMethods[] = $verb;
 
-                    if ($verb == $this->app->request->method) {
+                    if ($verb == $httpMethod) {
                         $this->matchedMethod = $method;
                         return true;
                     }
