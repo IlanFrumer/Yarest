@@ -11,77 +11,63 @@ namespace Yarest;
 
 class App
 {
-    public $config;
-    public $request;
-    public $response;
+    /**
+     * [$response description]
+     * @var \Yarest\Response
+     */
+    private $response;
 
-    public $routers = array();
+    /**
+     * [$request description]
+     * @var \Yarest\Request
+     */
+    private $request;
+
+    /**
+     * [$config description]
+     * @var \Yarest\Config
+     */
+    private $config;
+
+    /**
+     * [$routers description]
+     * @var array
+     */
+    private $routers = array();
 
     /**
      * Creating config, requsest, response instances which would be passed to the routers.
      * 
      * @param array $config pass user configuration to override defaults
      */
-    
     public function __construct($config = array())
     {
-        
-        # Response must be first because it registers an error handler
         $this->response = new Response();
-
         $this->request  = new Request();
-                
         $this->config   = new Config($config);
     }
 
     /**
      * Mapping a route to a namepace.
-     * Every part of thr uri pattern after an asterisk is completly being ignored.
      * 
-     * Internally, every path is transformed into an array representation
+     * Every part of thr uri pattern after an asterisk is completly being ignored.
      * 
      * @param string $pattern   A valid URI to match the request
      * @param string|array $namespace The root namespace
      * @param string|array $folder    OPTIONAL folder relative to the root folder
-     * 
      */
-    public function router($pattern, $namespace, $folder = array())
+    public function route($pattern, $namespace, $folder = array())
     {
-        $router  = array();
-        $invoker = new Invoker();
+
+        $route  = new Route($pattern, $namespace, $folder);
+
+        $route->path = $this->request['path'] . $route->folder;
+
+        $router = new Router($this->config, $this->request, $this->response, $route);
         
-        $pattern = Helpers::stripAsterisk($pattern);
-
-        $router['pattern']   = Helpers::uriToStack($pattern);
-        $router['namespace'] = Helpers::namespaceToStack($namespace);
-        $router['folder']    = Helpers::uriToStack($folder);
-
-        $router['invoker']   = $invoker;
-        
-        ###
-
-        // $injector = function (Resource $resource) use ($namespace) {
-            
-        //     $namespace_string = Helpers::stackToNamespace($namespace);
-
-        //     $resource['docs'] = $resource->share(function () use ($namespace_string) {
-
-        //         $absolute_path = $this->request['pathUri'];
-        //         $alias         = $this->config['alias'];
-        //         $docs = new Docs($absolute_path, $namespace_string, $alias);
-        //         return $docs->generateAllMethods();
-        //     });
-
-               
-        // };
-
-        ####
-        
-        // $router = new Router($pattern, $namespace, $folder);
-
         $this->routers[] = $router;
 
-        return $invoker;
+        return $router;
     }
 
     /**
@@ -92,26 +78,22 @@ class App
 
         while ($router = array_shift($this->routers)) {
 
-            $endpoint = Dispatch::matchPattern($this->request, $router);
+            $router->run();
 
-            if (!$endpoint) {
-                continue;
-            }
-
-            $loader = Dispatch::loadNamespace($root_path, $router);
-
-            $another  = Dispatch::matchClass($this->config, $endpoint, $router);
-
-
-            $router['invoker']->invoke($resurce);
         }
     }
 
     /**
-     * Responding to the clients
+     * Responding to the client
      */
     public function __destruct()
     {
-        echo $this->response;
+        $headers = $this->response->getHeaders();
+
+        foreach ($headers as $header) {
+            header($header);
+        }
+
+        echo $this->response->getBody();
     }
 }

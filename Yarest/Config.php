@@ -17,7 +17,7 @@ class Config extends ReadOnlyArray
      */
     private function setDefaults()
     {
-        $this->values['root_class'] = 'Root';
+        $this->values['base_class'] = 'Root';
 
         $this->values['debug'] = true;
 
@@ -45,7 +45,7 @@ class Config extends ReadOnlyArray
         $this->setDefaults();
 
         if (!is_array($user_config)) {
-            throw new Exception\InvalidArgumentException('Config must be an array.');
+            throw new \InvalidArgumentException('Config must be an array.');
         }
 
         foreach ($user_config as $key => $value) {

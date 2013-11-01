@@ -12,12 +12,12 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $request = new Request;
         $this->assertEquals($request['server'], 'localhost');
         $this->assertEquals($request['method'], 'GET');
-        $this->assertEquals($request['pathUri'], __DIR__ . "/");
+        $this->assertEquals($request['path'], __DIR__ . "/");
 
         $request = new Request;
         $this->assertEquals($request['server'], 'localhost');
         $this->assertEquals($request['method'], 'GET');
-        $this->assertEquals($request['pathUri'], __DIR__ . "/");
+        $this->assertEquals($request['path'], __DIR__ . "/");
     }
 
     public function testRequestEndPoints()

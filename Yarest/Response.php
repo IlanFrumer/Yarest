@@ -50,7 +50,6 @@ class Response
     // header('Content-type: application/json; charset=utf-8");
     /**
      * [$type description]
-     * header('Allow: GET, POST')
      * @var string
      */
     private $type    = 'application/json';
@@ -63,37 +62,16 @@ class Response
 
     /**
      * [$allow description]
+     * header('Allow: GET, POST')
      * @var [type]
      */
-    private $allow   = null;
+    private $allowed  = null;
 
     /**
      * [$body description]
      * @var string
      */
     private $body    = '';
-
-
-    /**
-     * [__construct description]
-     */
-    public function __construct()
-    {
-        // ob_start();
-
-        set_exception_handler(function ($exception) {
-            $this->status = '500 Application Level Exception';
-            $this->type   = 'text/html';
-            die();
-        });
-
-        set_error_handler(function ($a, $b, $c, $d, $e) {
-            
-            $this->status = '500 Application Level Error';
-            $this->type   = 'text/html';
-            die();
-        });
-    }
     
     /**
      * [setStatus description]
@@ -131,18 +109,7 @@ class Response
      */
     public function setAllowed(array $methods = array('GET'))
     {
-        $this->allow = $methods;
-    }
-
-    /**
-     * [appendBody description]
-     * @param  [type] $body
-     * @return [type]
-     */
-    public function appendBody($body)
-    {
-        $this->body.= $body;
-        return $this;
+        $this->allowed = $methods;
     }
 
     /**
@@ -156,33 +123,34 @@ class Response
     }
 
     /**
-     * [setHeaders description]
+     * [getHeaders description]
      */
-    private function setHeaders()
+    public function getHeaders()
     {
+        $headers = array();
 
-        header("HTTP/1.1: $this->status");
-        header("Content-type: $this->type; charset=$this->charset");
+        $headers[] = "HTTP/1.1: $this->status";
+        $headers[] = "Content-type: $this->type; charset=$this->charset";
         
-        if ($this->allow) {
-            header('Allow: '.implode(', ', $this->allow));
+
+        if ($this->allowed) {
+            $list = implode(', ', $this->allowed);
+            $headers[] = "Allow: $list";
         }
 
+        return $headers;
     }
 
     /**
-     * [__toString description]
-     * @return string
+     * [getBody description]
+     * @return [type]
      */
-    public function __toString()
+    public function getBody()
     {
-        $this->setHeaders();
-        // flush();
-
         if (is_array($this->body)) {
-            $this->body = json_encode($this->body);
+            return json_encode($this->body);
+        } else {
+            return $this->body;
         }
-
-        return $this->body;
     }
 }
