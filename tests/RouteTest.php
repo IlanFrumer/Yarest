@@ -79,6 +79,40 @@ class RouteTest extends \PHPUnit_Framework_TestCase
       $this->assertNull($route->matchedMethod);
 
       # 2
+      $endpoint = Helpers\Uri::uriToArray('/Members/');
+      $route->resolveClass($endpoint, $base_class);
+
+      $this->assertTrue($route->findMethods($alias, 'GET'));
+      $this->assertInstanceOf("ReflectionMethod", $route->matchedMethod);
+
+      $this->assertTrue($route->findMethods($alias, 'POST'));
+      $this->assertInstanceOf("ReflectionMethod", $route->matchedMethod);
+
+      $this->assertTrue($route->findMethods($alias, 'PUT'));
+      $this->assertNull($route->matchedMethod);
+      $this->assertContains('GET',$route->allowedMethods);
+      $this->assertContains('POST',$route->allowedMethods);
+
+      # 3
+      $endpoint = Helpers\Uri::uriToArray('/Members/123');
+      $route->resolveClass($endpoint, $base_class);
+
+      $this->assertTrue($route->findMethods($alias, 'GET'));
+      $this->assertInstanceOf("ReflectionMethod", $route->matchedMethod);
+
+      $this->assertTrue($route->findMethods($alias, 'PUT'));
+      $this->assertInstanceOf("ReflectionMethod", $route->matchedMethod);
+
+      $this->assertTrue($route->findMethods($alias, 'DELETE'));
+      $this->assertInstanceOf("ReflectionMethod", $route->matchedMethod);
+
+      $this->assertTrue($route->findMethods($alias, 'POST'));
+      $this->assertNull($route->matchedMethod);
+      $this->assertContains('GET',$route->allowedMethods);
+      $this->assertContains('PUT',$route->allowedMethods);
+      $this->assertContains('DELETE',$route->allowedMethods);
+
+      # 4
       $endpoint = Helpers\Uri::uriToArray('/Members/123/Followers');
       $route->resolveClass($endpoint, $base_class);
 

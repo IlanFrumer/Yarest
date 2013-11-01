@@ -82,7 +82,7 @@ class Route
      */
     public function matchPattern(array $endpoint)
     {
-        return Helpers\Pattern::match($endpoint, $this->pattern);        
+        return Helpers\Pattern::match($endpoint, $this->pattern);
     }
 
     /**
@@ -105,7 +105,7 @@ class Route
 
             $class = array();
 
-            Helpers\Uri::uriToNamespace($endpoint, $class, $this->elements);            
+            Helpers\Uri::uriToNamespace($endpoint, $class, $this->elements);
 
             $this->class = $this->namespace . "\\" . Helpers\Uri::arrayToNamespace($class);
         }

@@ -62,7 +62,7 @@ class Uri
         } elseif (is_array($namespace)) {
             return $namespace;
         } else {
-            throw new \InvalidArgumentException("Expected namespace to be an array or a string", 1);        
+            throw new \InvalidArgumentException("Expected namespace to be an array or a string", 1);
         }
     }
 
@@ -78,7 +78,7 @@ class Uri
         } elseif (is_array($uri)) {
             return $uri;
         } else {
-            throw new \InvalidArgumentException("Expected uri to be an array or a string", 1);        
+            throw new \InvalidArgumentException("Expected uri to be an array or a string", 1);
         }
     }
 

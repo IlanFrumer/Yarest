@@ -18,7 +18,7 @@ class Loader
      * @param  string $folder
      * @return ClassLoader
      */
-    public static function loadNamespace($path, $namespace , $folder)
+    public static function loadNamespace($path, $namespace, $folder)
     {
         $loader = new \Yarest\ClassLoader();
         $loader->add($namespace, $path . $folder);
@@ -37,5 +37,4 @@ class Loader
     {
         return class_exists($class) && is_subclass_of($class, $abstract);
     }
-
 }
