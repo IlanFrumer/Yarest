@@ -4,10 +4,34 @@ namespace Yarest;
 
 class ConfigTest extends \PHPUnit_Framework_TestCase
 {
+
+    public function wrongalias()
+    {
+        return array(array(123), array(0 => "get"),array("give" => "get"), array("Give" => "GET"));
+    }
+
+    /**
+     * @expectedException \Yarest\Exception\WrongConfigException
+     * @dataProvider wrongalias
+     */
+    public function testStaticValidateAliasWrong($alias)
+    {
+        Config::validateAlias($alias);
+    }
+
+    public function testStaticValidateAlias()
+    {
+        $alias = array();
+        $this->assertTrue(Config::validateAlias($alias));
+
+        $alias = array("give" => "GET" , "let" => "POST" , "do" => "DO");
+        $this->assertTrue(Config::validateAlias($alias));
+    }
+
     public function testConfigDefaults()
     {
         $config = new Config();
-        $this->assertEquals('Root', $config['base_class']);
+        $this->assertEquals('Root', $config['base']);
     }
 
     public function testConfigOverride()
@@ -21,41 +45,17 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Main', $config['base_class']);
     }
 
-    public function testConfigNotAssoc()
-    {
-        $user_config = array(0 => "value");
-
-        $config = new Config($user_config);
-
-        $this->assertEquals(null, $config[0]);
-    }
-
-    public function testConfigArrayMerge()
-    {
-        $user_config = array();
-
-        $user_config['alias'] = array('recover' => 'RECOVER');
-
-        $config = new Config($user_config);
-
-        $this->assertArrayHasKey('recover', $config['alias']);
-        $this->assertArrayHasKey('get', $config['alias']);
-
-        $this->assertContains('RECOVER', $config['alias']);
-        $this->assertContains('GET', $config['alias']);
-    }
-
     public function testConfigGet()
     {
         $config = new Config();
-        $base_class = $config['base_class'];
+        $base_class = $config['base'];
     }
 
     public function testConfigIsset()
     {
         $config = new Config();
         $this->assertFalse(isset($config['Foo']));
-        $this->assertTrue(isset($config['base_class']));
+        $this->assertTrue(isset($config['base']));
     }
 
     /**

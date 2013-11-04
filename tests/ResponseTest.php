@@ -10,10 +10,10 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $response = new Response();
         
         $response->setStatus("400","Custom Error");
-        $this->assertContains("HTTP/1.1: 400 Custom Error", $response->getHeaders());
+        $this->assertContains("HTTP/1.1 400 : Custom Error", $response->getHeaders());
 
         $response->setStatus("500");
-        $this->assertContains("HTTP/1.1: 500", $response->getHeaders());
+        $this->assertContains("HTTP/1.1 500", $response->getHeaders());
 
     }
 
@@ -44,9 +44,6 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     {
         $response = new Response();
         
-        $response->setAllowed();
-        $this->assertContains("Allow: GET", $response->getHeaders());
-
         $response->setAllowed(array('GET','POST','PUT'));
         $this->assertContains("Allow: GET, POST, PUT", $response->getHeaders());
     }

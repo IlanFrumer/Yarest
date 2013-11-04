@@ -106,15 +106,36 @@ class Uri
     }
 
     /**
-     * [uriToNamespace description]
-     * @param  [type] $array
-     * @param  [type] $namespace
-     * @param  [type] $elements
-     * @return [type]
+     * [matchPattern description]
+     * @param  array  $uri
+     * @param  array  $pattern
+     * @return array|false
      */
-    public static function uriToNamespace($array, &$namespace, &$elements)
+    public static function matchPattern(array $uri, array $pattern)
     {
-        foreach ($array as $k => $v) {
+        while ($p = array_shift($pattern)) {
+            $r = array_shift($uri);
+            if ($p != $r) {
+                return false;
+            }
+        }
+
+        return $uri;
+    }
+
+    /**
+     * [uriToClassAndElements description]
+     * @param  array $uri
+     * @param  array $namespace
+     * @return array associative array of class and elements
+     */
+    public static function uriToClassAndElements($uri, $namespace)
+    {
+        $elements = array();
+
+        $namespace = array($namespace);
+
+        foreach ($uri as $k => $v) {
             
             $v = ucfirst(strtolower($v));
 
@@ -124,5 +145,9 @@ class Uri
                 $elements[]  = $v;
             }
         }
+
+        $class = self::arrayToNamespace($namespace);
+
+        return array($class ,$elements);
     }
 }

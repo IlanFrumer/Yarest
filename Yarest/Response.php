@@ -42,10 +42,10 @@ class Response
 {
     /**
      * [$status description]
-     * header('HTTP/1.1: 404 Not Found')
+     * header('HTTP/1.1 404 : Not Found')
      * @var string
      */
-    private $status  = '404 Not Found';
+    private $status  = '404 : Not Found';
 
     // header('Content-type: application/json; charset=utf-8");
     /**
@@ -80,8 +80,8 @@ class Response
      */
     public function setStatus($status, $message = null)
     {
-        if ($message) {
-            $this->status  = "$status $message";
+        if (!is_null($message)) {
+            $this->status  = "$status : $message";            
         } else {
             $this->status  = (string) $status;
         }
@@ -107,8 +107,8 @@ class Response
      * [setAllowed description]
      * @param array $methods
      */
-    public function setAllowed(array $methods = array('GET'))
-    {
+    public function setAllowed(array $methods)
+    {        
         $this->allowed = $methods;
     }
 
@@ -129,12 +129,12 @@ class Response
     {
         $headers = array();
 
-        $headers[] = "HTTP/1.1: $this->status";
+        $headers[] = "HTTP/1.1 $this->status";
         $headers[] = "Content-type: $this->type; charset=$this->charset";
         
 
-        if ($this->allowed) {
-            $list = implode(', ', $this->allowed);
+        if ($this->allowed) {            
+            $list = implode(", ", $this->allowed);
             $headers[] = "Allow: $list";
         }
 

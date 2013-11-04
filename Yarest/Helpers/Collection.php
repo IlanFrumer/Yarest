@@ -37,4 +37,14 @@ class Collection
 
         return array_merge($array, $arr2);
     }
+
+    public static function mapAssoc(array $map, array $array)
+    {        
+        $mapped = array();
+        foreach ($map as $key => $value) {
+            $mapped[$value] = isset($array[$key]) ? $array[$key] : null;
+        }
+        return $mapped;
+    }
+
 }

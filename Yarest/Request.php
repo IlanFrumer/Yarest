@@ -21,7 +21,7 @@ class Request extends ReadOnlyArray
         if (isset($_SERVER[$property])) {
             return $_SERVER[$property];
         } else {
-            throw new Exception\ServerMissingException('$_SERVER['."'".$property."'".'] must be set', 1);
+            return null;
         }
     }
 
@@ -38,27 +38,45 @@ class Request extends ReadOnlyArray
         $request_method = self::server('REQUEST_METHOD');
 
         // strip the file name
-        $rootUri = dirname($php_self);
-
-        // strip the query string
-        $requestUri = parse_url($request_uri, PHP_URL_PATH);
+        $root = dirname($php_self);
 
         // absolute path of the root folder
-        $path = $document_root.$rootUri;
+        $path = $document_root.$root;
 
-        // relative to root folder
-        $endPointUri = Helpers\Uri::substrURI($requestUri, $rootUri);
+        // strip the query string
+        $request_uri = parse_url($request_uri, PHP_URL_PATH);
+
+        // relative to root
+        $request_uri = Helpers\Uri::substrURI($request_uri, $root);
 
         // array representation of the end point
-        $endPoint    = Helpers\Uri::uriToArray($endPointUri);
-
+        $request_uri = Helpers\Uri::uriToArray($request_uri);
+        
         // array representation of the virtual host
-        $virtualHost = Helpers\Uri::uriToArray($rootUri);
+        $virtual_host = Helpers\Uri::uriToArray($root);
 
-        $this->values['server']      = $server;
-        $this->values['path']        = $path;
-        $this->values['method']      = $request_method;
-        $this->values['virtualHost'] = $virtualHost;
-        $this->values['endPoint']    = $endPoint;
+        $body = $this->parseInput();
+
+        $this->values['server']  = $server;
+        $this->values['path']    = $path;
+        $this->values['method']  = $request_method;
+        $this->values['virtual'] = $virtual_host;
+        $this->values['uri']     = $request_uri;
+        $this->values['body']    = $body;
+    }
+
+    private function parseInput()
+    {
+        if (!empty($_GET)) {
+            return $_GET;
+        }
+
+        if (!empty($_POST)) {
+            return $_POST;
+        }
+
+        $input = @file_get_contents('php://input');
+        $params = json_decode(preg_replace('/\'/', '"', $input), true);
+        return $params ?: array();
     }
 }

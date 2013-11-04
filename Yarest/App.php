@@ -15,19 +15,19 @@ class App
      * [$response description]
      * @var \Yarest\Response
      */
-    private $response;
+    public $response;
 
     /**
      * [$request description]
      * @var \Yarest\Request
      */
-    private $request;
+    public $request;
 
     /**
      * [$config description]
      * @var \Yarest\Config
      */
-    private $config;
+    public $config;
 
     /**
      * [$routers description]
@@ -61,7 +61,7 @@ class App
 
         $route  = new Route($pattern, $namespace, $folder);
 
-        $router = new Router($this->config, $this->request, $this->response, $route);
+        $router = new Router($this, $route);
         
         $this->routers[] = $router;
 
@@ -79,19 +79,24 @@ class App
             $router->run();
 
         }
+        return $this;
     }
 
     /**
      * Responding to the client
      */
-    public function __destruct()
+    public function headers()
     {
         $headers = $this->response->getHeaders();
 
         foreach ($headers as $header) {
-            header($header);
+            header($header);            
         }
-
+        return $this;
+    }
+    public function body()
+    {
         echo $this->response->getBody();
+        return $this;
     }
 }

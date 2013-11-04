@@ -103,18 +103,35 @@ class UriTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(Uri::arrayToURI($array), 'Yarest');
     }
 
-    public function testStaticMethodUriToNamespace()
+    public function testStaticMethodUriToClassAndElements()
     {
 
-        $array = Uri::uriToArray('/sToRe/gooGLE/likes');
+        $uri = Uri::uriToArray('/sToRe/gooGLE/likes');
 
-        $namespace = array('Api');
-        $elements  = array();
+        $namespace = "Api";
 
-        Uri::uriToNamespace($array, $namespace, $elements);
+        list($class, $elements) = Uri::uriToClassAndElements($uri, $namespace);
 
-        $this->assertEquals($namespace, array('Api','Store','Likes'));
+        $this->assertEquals($class, 'Api\\Store\\Likes');
         $this->assertEquals($elements, array('Google'));
 
     }
+
+    public function testMatchPattern()
+    {
+        $endpoint = array('api','docs');
+        $pattern  = array('api');
+
+        $this->assertEquals(array('docs'), Uri::matchPattern($endpoint, $pattern));
+
+        $endpoint = array('api');
+        $pattern  = array('api');
+
+        $this->assertEquals(array(), Uri::matchPattern($endpoint, $pattern));
+
+        $endpoint = array('images');
+        $pattern  = array('api');
+
+        $this->assertFalse(Uri::matchPattern($endpoint, $pattern));
+    }    
 }
