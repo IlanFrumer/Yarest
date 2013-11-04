@@ -30,6 +30,12 @@ class App
     public $config;
 
     /**
+     * [$config description]
+     * @var \Yarest\Config
+     */
+    public $parser;
+
+    /**
      * [$routers description]
      * @var array
      */
@@ -45,6 +51,9 @@ class App
         $this->response = new Response();
         $this->request  = new Request();
         $this->config   = new Config($config);
+
+        $this->parser   = new Parser($this->config, $this->request);
+
     }
 
     /**
@@ -76,7 +85,14 @@ class App
 
         while ($router = array_shift($this->routers)) {
 
-            $router->run();
+            try {
+                $router->run();
+            
+            } catch (Exception\InvalidExpression $e) {
+
+                $this->response->setStatus('500');
+                $this->response->setBody($e->errors);
+            }
 
         }
         return $this;
@@ -90,7 +106,7 @@ class App
         $headers = $this->response->getHeaders();
 
         foreach ($headers as $header) {
-            header($header);            
+            header($header);
         }
         return $this;
     }

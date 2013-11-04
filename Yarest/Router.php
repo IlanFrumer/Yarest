@@ -23,12 +23,6 @@ class Router
      */
     private $route;
 
-    /**
-     * [$response description]
-     * @var ReflectionMethod
-     */
-    private $matched_method = null;
-
 
     /**
      * [__construct description]
@@ -47,79 +41,78 @@ class Router
      * @param  [type] $args   [description]
      * @return [type]         [description]
      */
-    public function __call($method, $args) {
+    public function __call($method, $args)
+    {
         switch ($method) {
-        case 'before':
-        case 'after':
-        case 'error':
-        case 'notFound':
-            if (count($args) == 1) {
-                Helpers\Arguments::checkCallable($args[0]);
-                $this->route->callbacks[$method] = $args[0];
-            } else {
-                throw new \InvalidArgumentException('Method $method expects only 1 argument');
-            }
-            return $this;
-        default:
-            throw new \BadMethodCallException("Bad method: $method", 1);        
-        }    
+            case 'before':
+            case 'after':
+            case 'error':
+            case 'notFound':
+                if (count($args) == 1) {
+                    Helpers\Arguments::checkCallable($args[0]);
+                    $this->route->callbacks[$method] = $args[0];
+                } else {
+                    throw new \InvalidArgumentException('Method $method expects only 1 argument');
+                }
+                return $this;
+            default:
+                throw new \BadMethodCallException("Bad method: $method", 1);
+        }
     }
 
     /**
      * Creates a class and Invokes the matched method
-     * @param  [type] $class    [description]
+     * @param  ReflectionMethod $method    [description]
      * @param  array  $elements [description]
      */
-    private function invoke($class, array $elements)
+    private function invoke(\ReflectionMethod $method, array $elements)
     {
 
+        $class = $method->getDeclaringClass()->name;
         $resource = new $class();
 
-        ## injecting stuff
+        // parse comment
+        $info = $this->app->parser->parseComment($method);
 
-        $info = Helpers\Reflection::parseComment($this->matched_method);
+        // validate input
+        list($errors, $invalid_input, $body) = $this->app->parser->checkCommentVars($info['var']);
 
-        $data = new \stdclass();
+        // developer bad expressions
+        if (!empty($errors)) {
+            $output = array();
+            $output['class']  = $method->class;
+            $output['method'] = $method->name;
+            $output['errors'] = $errors;
+            throw new Exception\InvalidExpression(array("InvalidCommentExpressions" => $output));
+        }
 
-        $data->regex = $this->app->config['regex'];
-        $data->body  = $this->app->request['body'];
-
-        $info['var'] = Helpers\Parse::variables($info['var'], $data);
-
-
-        if( !empty($data->invalid_input)) {
+        // invalid input
+        if (!empty($invalid_input)) {
             $this->app->response->setStatus('412');
-            $this->app->response->setBody($data->invalid_input);
+            $this->app->response->setBody(array("InvalidInput" => $invalid_input));
             return;
         }
 
-        if( !empty($data->invalid_regex)) {
-
-            $this->app->response->setStatus('500');
-            $this->app->response->setBody($data->invalid_regex);
-            return;
-        }
-
-        $resource->body = $data->body;
+        $resource->body = $body;
         $resource->info = $info;
-        $resource->response = $this->app->response;        
+        $resource->response = $this->app->response;
         
-        $resource['docs'] = $resource->share(function () {
+        // $resource['docs'] = $resource->share(function () {
             
-            $absolute_path = $this->app->request->pathUri;
-            $namespace     = Helpers::stackToNamespace($this->namespace);
-            $alias         = $this->app->config['alias'];
+        //     $absolute_path = $this->app->request->pathUri;
+        //     $namespace     = Helpers::stackToNamespace($this->namespace);
+        //     $alias         = $this->app->config['alias'];
 
-            $docs = new Docs($this->app->request->pathUri, $namespace, $alias);
+        //     $docs = new Docs($this->app->request->pathUri, $namespace, $alias);
             
-            return $docs->generateAllMethods();
-        });
+        //     return $docs->generateAllMethods();
+        // });
 
-        $resource['doc'] = $resource->share(function () {
+        // $resource['doc'] = $resource->share(function () {
                 
-            return Docs::generateMethod($this->matched_method);
+        //     return Docs::generateMethod($method);
 
-        });
+        // });
         
         try {
 
@@ -133,7 +126,7 @@ class Router
 
             # invoke class matched method
             
-            $body = $this->matched_method->invokeArgs($resource, $elements);
+            $body = $method->invokeArgs($resource, $elements);
 
             if (isset($body)) {
                 $this->app->response->setBody($body);
@@ -151,75 +144,20 @@ class Router
             
             if (array_key_exists('error', $this->route->callbacks)) {
                 call_user_func_array($this->route->callbacks['error'], array($error));
+            } else {
+
+                // pass it up if there is no user defined error handler
+                throw $error;
             }
-            
-            echo "error";
         }
 
     }
 
-    /**
-     * [findMethods description]
-     * @param  array  $methods  [description]
-     * @param  array  $elements [description]
-     * @return array|ReflectionMethod
-     */
-    public function findMethods(array $methods, array $elements)
-    {
 
-        $http_method = $this->app->request['method'];
-        $alias  = $this->app->config['alias'];
-        $regex  = $this->app->config['regex'];
-
-        $numberofparameters = count($elements);
-        
-        $allowedMethods = array();
-
-        foreach ($methods as $method) {
-            
-            preg_match("/^[a-z]+/", $method->name , $matched);
-
-            if( !empty($matched) && array_key_exists($matched[0], $alias)) {    
-
-                if ($method->getnumberofparameters() == $numberofparameters) {
-                    
-                    $verb = $alias[$matched[0]];
-
-                    $allowedMethods[$verb] = false;
-
-                    if ($verb == $http_method) {
-                        
-                        $allowedMethods[$verb] = true;
-
-                        if(is_null($this->matched_method)) { 
-                            if(Helpers\reflection::validateParameters($method, $elements, $regex)) {
-                                $this->matched_method = $method;
-                            }
-                        }
-
-                    } else {
-                        $allowedMethods[$verb] = false;
-                    }
-
-                }
-            }
-        }
-
-        return $allowedMethods;
-    }
 
     /**
-     * phase 0: Match the router pattern with the end point
-     * phase 1: Match the appropriate class (autoloading)
-     * phase 2: Match end point appropriate class methods
-     * phase 3: If found invokes matched method
-     *          else sets response to 405 with the allowed method list
-     * 
-     * If router fails before phase 3 than it returns false
-     * Notice: On phase 3, the router returns true even if no matched method was invoked
-     *         but there are other methods that responses to other HTTP methods
      *
-     * @return boolean If Methods found
+     * @return boolean If methods found
      */
     
     public function run()
@@ -264,33 +202,36 @@ class Router
 
         ####################################
         
-        $allowedMethods = $this->findMethods($methods, $elements);
+        list($errors, $allowed_methods, $matched_method) = $this->app->parser->filterMethods($methods, $elements);
 
-        if (empty($allowedMethods)) {
+        if (!empty($errors)) {
+            throw new Exception\InvalidExpression(array("InvalidExpressions" => $errors));
+        }
+
+        if (empty($allowed_methods)) {
 
             $loader->unregister();
             return false;
 
         }
 
-        ### from now on the router run method returns true
+        ### from now on returns true
     
-        if(is_null($this->matched_method)) {
+        if (is_null($matched_method)) {
 
             $http_method = $this->app->request['method'];
 
-            if(array_key_exists($http_method, $allowedMethods) && $allowedMethods[$http_method]) {
+            if (array_key_exists($http_method, $allowed_methods) && $allowed_methods[$http_method]) {
                 $this->app->response->setStatus('400');
             } else {
-                $this->app->response->setStatus('405');                
-                $this->app->response->setAllowed(array_keys($allowedMethods));
+                $this->app->response->setStatus('405');
+                $this->app->response->setAllowed(array_keys($allowed_methods));
             }
 
-        } else {            
-            $this->invoke($class, $elements);
+        } else {
+            $this->invoke($matched_method, $elements);
         }
 
         return true;
     }
-
 }

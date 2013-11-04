@@ -39,7 +39,7 @@ class Collection
     }
 
     public static function mapAssoc(array $map, array $array)
-    {        
+    {
         $mapped = array();
         foreach ($map as $key => $value) {
             $mapped[$value] = isset($array[$key]) ? $array[$key] : null;
@@ -47,4 +47,43 @@ class Collection
         return $mapped;
     }
 
+    /**
+     * [splitBySpaces description]
+     * @param  string $subject [description]
+     * @param  int    $count   [description]
+     * @return array[description]
+     */
+    public static function splitBySpaces($subject, $count)
+    {
+        # http://stackoverflow.com/questions/6576313/how-to-avoid-undefined-offset
+        return array_pad(preg_split('/(\s+)/', $subject, $count), $count, null);
+    }
+
+    public static function arrayColumn(array $input, $columnKey, $indexKey = null)
+    {
+        $result = array();
+    
+        if (null === $indexKey) {
+            if (null === $columnKey) {
+                // trigger_error('What are you doing? Use array_values() instead!', E_USER_NOTICE);
+                $result = array_values($input);
+            } else {
+                foreach ($input as $row) {
+                    $result[] = $row[$columnKey];
+                }
+            }
+        } else {
+            if (null === $columnKey) {
+                foreach ($input as $row) {
+                    $result[$row[$indexKey]] = $row;
+                }
+            } else {
+                foreach ($input as $row) {
+                    $result[$row[$indexKey]] = $row[$columnKey];
+                }
+            }
+        }
+    
+        return $result;
+    }
 }

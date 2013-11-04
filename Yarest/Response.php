@@ -81,7 +81,7 @@ class Response
     public function setStatus($status, $message = null)
     {
         if (!is_null($message)) {
-            $this->status  = "$status : $message";            
+            $this->status  = "$status : $message";
         } else {
             $this->status  = (string) $status;
         }
@@ -108,7 +108,7 @@ class Response
      * @param array $methods
      */
     public function setAllowed(array $methods)
-    {        
+    {
         $this->allowed = $methods;
     }
 
@@ -133,7 +133,7 @@ class Response
         $headers[] = "Content-type: $this->type; charset=$this->charset";
         
 
-        if ($this->allowed) {            
+        if ($this->allowed) {
             $list = implode(", ", $this->allowed);
             $headers[] = "Allow: $list";
         }
