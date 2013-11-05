@@ -9,5 +9,5 @@ before_script:
   - phpenv rehash
 
 script: 
-  - phpunit --stderr -c phpunit.xml.dist
+  - phpunit -c phpunit.xml.dist
   - phpcs --standard=PSR2 -pv Yarest

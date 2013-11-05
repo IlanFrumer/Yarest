@@ -30,7 +30,7 @@ class Parser
         $number_of_parameters = count($elements);
         
         $allowed_methods = array();
-        $errors          = array();
+        $catched_errors  = array();
         $matched_method  = null;
 
         foreach ($methods as $method) {
@@ -60,8 +60,8 @@ class Parser
                                 $error = array();
                                 $error['class']  = $method->class;
                                 $error['method'] = $method->name;
-                                $error['parameters'] = $validate;
-                                $errors[] = $error;
+                                $error['parameters'] = $errors;
+                                $catched_errors[] = $error;
 
                             } elseif ($valid == true) {
                                 $matched_method = $method;
@@ -77,7 +77,7 @@ class Parser
             }
         }
        
-        return array($errors, $allowed_methods, $matched_method);
+        return array($catched_errors, $allowed_methods, $matched_method);
         
     }
 
@@ -105,6 +105,7 @@ class Parser
 
                 if (is_string($result)) {
                     $errors[$parameter->name] = $result;
+                    $valid = false;
                 } elseif ($result == false) {
                     $valid = false;
                 }
@@ -133,14 +134,14 @@ class Parser
 
         $pattern = '/(^\/\*\*)|(^\s*\**[ \/]?)|\s(?=@)|\s\*\//m';
 
-        $comment = preg_replace($pattern, '', $comment);
+        $comment  = preg_replace($pattern, '', $comment);
         $comments = preg_split("/(\r?\n)/", $comment);
         $comments = array_map('trim', $comments);
 
         $mode = 0; //pre 0 | short 1 | long 2
 
         foreach ($comments as $comment) {
-            
+
             if (strlen($comment) == 0) {
                 if ($mode == 1) {
                     $mode++;
@@ -285,7 +286,7 @@ class Parser
             return (bool) preg_match($regex, $element);
         }
 
-        #vertical bar
+        # vertical bar
 
         if (preg_match('/^(\w+)(\|\w+)*$/', $subject)) {
          
@@ -294,7 +295,7 @@ class Parser
         }
 
 
-        #arithmetic bar
+        # arithmetics
         
         $unsigned_number = is_numeric($element) && (int) $element >= 0;
 

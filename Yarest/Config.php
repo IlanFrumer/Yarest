@@ -51,25 +51,6 @@ class Config extends ReadOnlyArray
         $this->values['regex'] = $regex;
     }
 
-    // public static function validateAlias($alias)
-    // {
-    //     if (!is_array($alias)) {
-    //         throw new Exception\WrongConfigException("Config: alias must be an array", 1);
-    //     }
-
-    //     foreach ($alias as $classMethod => $httpMethod) {
-
-    //         if (! preg_match('/^[a-z]+$/', $classMethod)) {
-    //             throw new Exception\WrongConfigException("Config: alias class method must be lowercase", 1);
-    //         }
-
-    //         if (! preg_match('/^[A-Z]+$/', $httpMethod)) {
-    //             throw new Exception\WrongConfigException("Config: alias http method must contain only UpperCase Letter", 1);
-    //         }
-    //     }
-    //     return true;
-    // }
-
     private static function validate($type, $value)
     {
         switch ($type) {

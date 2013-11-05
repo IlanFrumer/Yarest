@@ -5,37 +5,37 @@ namespace Mock;
 class TestFilter extends \Yarest\Resource
 {
 
-    public function emailRegex($email = "/:email/")
+    public function getEmailRegex($email = "/:email/")
     {
         
     }
 
-    public function phoneRegex($phone = "/:israel_phone/")
+    public function getPhoneRegex($phone = "/:israel_phone/")
     {
         
     }
 
-    public function inlineRegex($test = "/^test/")
+    public function getInlineRegex($test = "/^test/")
     {
         
     }
 
-    public function only($name = "david")
+    public function postTest($id, $name)
     {
         
     }
 
-    public function some($name = "david|paul|simon")
+    public function getTest($id, $name, $email = "/:email/")
     {
         
     }
 
-    public function greater($number = ">10")
+    public function getWrong($name = "/david|paul|simon")
     {
         
     }
 
-    public function less($number = "<100")
+    public function getArithmetics($num1 = "<=10", $num2 = ">10", $num3 = "1..20", $num4 = "%5")
     {
         
     }

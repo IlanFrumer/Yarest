@@ -26,8 +26,8 @@ class TestReflection extends \Yarest\Resource
     /**
      * @var a
      * @var b [0]
-     * @var c /:reg/
-     * @var d /:reg/ [0] descripion !
+     * @var c "/:number/"
+     * @var d "/:number/" [0] descripion !
      */
     public function third()
     {

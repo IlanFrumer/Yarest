@@ -53,35 +53,18 @@ class Collection
      * @param  int    $count   [description]
      * @return array[description]
      */
-    public static function splitBySpaces($subject, $count)
+    public static function splitBySpaces($subject, $count = 0)
     {
         # http://stackoverflow.com/questions/6576313/how-to-avoid-undefined-offset
         return array_pad(preg_split('/(\s+)/', $subject, $count), $count, null);
     }
 
-    public static function arrayColumn(array $input, $columnKey, $indexKey = null)
+    public static function arrayColumn(array $input, $columnKey)
     {
         $result = array();
     
-        if (null === $indexKey) {
-            if (null === $columnKey) {
-                // trigger_error('What are you doing? Use array_values() instead!', E_USER_NOTICE);
-                $result = array_values($input);
-            } else {
-                foreach ($input as $row) {
-                    $result[] = $row[$columnKey];
-                }
-            }
-        } else {
-            if (null === $columnKey) {
-                foreach ($input as $row) {
-                    $result[$row[$indexKey]] = $row;
-                }
-            } else {
-                foreach ($input as $row) {
-                    $result[$row[$indexKey]] = $row[$columnKey];
-                }
-            }
+        foreach ($input as $row) {
+            $result[] = $row[$columnKey];
         }
     
         return $result;
