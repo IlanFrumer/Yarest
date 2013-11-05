@@ -9,7 +9,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertFalse(class_exists('Mock\\Main'));
         
-        $loader = Loader::loadNamespace(TEST_ROOT , "Mock", "");
+        $loader = Loader::loadNamespace(TEST_ROOT, "Mock", "");
 
         $prefixes = $loader->getPrefixes();
 

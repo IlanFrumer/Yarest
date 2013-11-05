@@ -133,5 +133,5 @@ class UriTest extends \PHPUnit_Framework_TestCase
         $pattern  = array('api');
 
         $this->assertFalse(Uri::matchPattern($endpoint, $pattern));
-    }    
+    }
 }

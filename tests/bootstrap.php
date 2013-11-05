@@ -1,6 +1,6 @@
 <?php
 
-define('TEST_ROOT', __DIR__);
+require_once "constants.php";
 
 $autoload = TEST_ROOT. "/../vendor/autoload.php";
 

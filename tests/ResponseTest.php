@@ -9,7 +9,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     {
         $response = new Response();
         
-        $response->setStatus("400","Custom Error");
+        $response->setStatus("400", "Custom Error");
         $this->assertContains("HTTP/1.1 400 : Custom Error", $response->getHeaders());
 
         $response->setStatus("500");
@@ -25,7 +25,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals("hello", $response->getBody());
 
         $array = array("a" => "b", "c" => "d");
-        $response->setBody($array);        
+        $response->setBody($array);
         $this->assertEquals(json_encode($array), $response->getBody());
     }
 
@@ -36,7 +36,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $response->setContentType("text/html");
         $this->assertContains("Content-type: text/html; charset=utf-8", $response->getHeaders());
 
-        $response->setContentType("application/xml","windows-2555");
+        $response->setContentType("application/xml", "windows-2555");
         $this->assertContains("Content-type: application/xml; charset=windows-2555", $response->getHeaders());
     }
 
@@ -47,5 +47,4 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $response->setAllowed(array('GET','POST','PUT'));
         $this->assertContains("Allow: GET, POST, PUT", $response->getHeaders());
     }
-
 }

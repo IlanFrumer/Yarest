@@ -5,15 +5,21 @@ namespace Yarest\Helpers;
 class ArgumentsTest extends \PHPUnit_Framework_TestCase
 {
 
+
+    public function testStaticCheckCallable()
+    {
+        $callable = function () {
+
+        };
+
+        $this->assertTrue(Arguments::checkCallable($callable));
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      */
-    public function testStaticMethodCheckCallable()
+    public function testStaticCheckCallableError()
     {
-        $callable = function(){};
-
-        $this->assertTrue(Arguments::checkCallable($callable));
-
         Arguments::checkCallable(123);
     }
 }

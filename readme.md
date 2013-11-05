@@ -1,5 +1,5 @@
 # Yarest
-[![Build Status](https://travis-ci.org/IlanFrumer/Yarest.png?branch=master)](https://travis-ci.org/IlanFrumer/Yarest)
+[![Build Status](https://travis-ci.org/IlanFrumer/Yarest.png?branch=develop)](https://travis-ci.org/IlanFrumer/Yarest)
 
 ### Installaion
 
