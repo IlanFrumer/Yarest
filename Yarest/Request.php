@@ -36,6 +36,7 @@ class Request extends ReadOnlyArray
         $document_root  = self::server('DOCUMENT_ROOT');
         $request_uri    = self::server('REQUEST_URI');
         $request_method = self::server('REQUEST_METHOD');
+        $request_token  = self::server('HTTP_X_AUTH_TOKEN');
 
         // strip the file name
         $root = dirname($php_self);
@@ -63,6 +64,8 @@ class Request extends ReadOnlyArray
         $this->values['virtual'] = $virtual_host;
         $this->values['uri']     = $request_uri;
         $this->values['body']    = $body;
+        $this->values['token']   = $request_token;
+
     }
 
     private function parseInput()

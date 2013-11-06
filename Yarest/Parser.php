@@ -29,9 +29,9 @@ class Parser
 
         $number_of_parameters = count($elements);
         
-        $allowed_methods = array();
         $catched_errors  = array();
-        $matched_method  = null;
+        $allowed_methods = array();
+        $matched_methods = array();
 
         foreach ($methods as $method) {
             
@@ -49,24 +49,22 @@ class Parser
                         
                         $allowed_methods[$verb] = true;
                         
-                        # allow only one matched method to be inkvoked later
-                        if (is_null($matched_method)) {
 
-                            # validate method parameters preconditions
-                            list($errors, $valid) = $this->validateParameters($method, $elements);
+                        # validate method parameters preconditions
+                        list($errors, $valid) = $this->validateParameters($method, $elements);
 
-                            if (!empty($errors)) {
+                        if (!empty($errors)) {
 
-                                $error = array();
-                                $error['class']  = $method->class;
-                                $error['method'] = $method->name;
-                                $error['parameters'] = $errors;
-                                $catched_errors[] = $error;
+                            $error = array();
+                            $error['class']  = $method->class;
+                            $error['method'] = $method->name;
+                            $error['parameters'] = $errors;
+                            $catched_errors[] = $error;
 
-                            } elseif ($valid == true) {
-                                $matched_method = $method;
-                            }
+                        } elseif ($valid == true) {
+                            $matched_methods[] = $method;
                         }
+                       
 
                     } else {
 
@@ -77,7 +75,7 @@ class Parser
             }
         }
        
-        return array($catched_errors, $allowed_methods, $matched_method);
+        return array($catched_errors, $allowed_methods, $matched_methods);
         
     }
 
@@ -131,6 +129,7 @@ class Parser
         $object['short'] = array();
         $object['long']  = array();
         $object['var']   = array();
+        $object['auth']  = array();
 
         $pattern = '/(^\/\*\*)|(^\s*\**[ \/]?)|\s(?=@)|\s\*\//m';
 
