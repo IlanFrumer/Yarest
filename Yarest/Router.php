@@ -34,32 +34,7 @@ class Router
         $this->app   = $app;
         $this->route = $route;
     }
-
-    /**
-     * [__call description]
-     * @param  [type] $method [description]
-     * @param  [type] $args   [description]
-     * @return [type]         [description]
-     */
-    public function __call($method, $args)
-    {
-        switch ($method) {
-            case 'before':
-            case 'after':
-            case 'error':
-            case 'notFound':
-                if (count($args) == 1) {
-                    Helpers\Arguments::checkCallable($args[0]);
-                    $this->route->callbacks[$method] = $args[0];
-                } else {
-                    throw new \InvalidArgumentException('Method $method expects only 1 argument');
-                }
-                return $this;
-            default:
-                throw new \BadMethodCallException("Bad method: $method", 1);
-        }
-    }
-
+    
     /**
      * Creates a class and Invokes the matched method
      * @param  array  $methods  array of ReflectionMethod object
@@ -213,16 +188,22 @@ class Router
             $loader->unregister();
             return false;
         }
-        
-        $methods = Helpers\Reflection::getOwnPublicMethods($class);
 
         ####################################
+        
+        $parse = new \Parse\Reflection($class, $this->app->config, $this->app->request);
+
+        $parse->filterMethods($elements);
+
+        return true;
+        $methods = Helpers\Reflection::getOwnPublicMethods($class);
         
         list($errors, $allowed_methods, $matched_methods) = $this->app->parser->filterMethods($methods, $elements);
 
         if (!empty($errors)) {
             throw new Exception\InvalidExpression(array("InvalidExpressions" => $errors));
         }
+
 
         if (empty($allowed_methods)) {
 

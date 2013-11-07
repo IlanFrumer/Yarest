@@ -74,7 +74,7 @@ class App
         
         $this->routers[] = $router;
 
-        return $router;
+        return $route;
     }
 
     /**

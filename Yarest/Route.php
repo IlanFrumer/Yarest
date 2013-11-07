@@ -55,4 +55,28 @@ class Route
         $this->namespace = $namespace;
         $this->folder    = $folder;
     }
+    /**
+     * [__call description]
+     * @param  [type] $method [description]
+     * @param  [type] $args   [description]
+     * @return [type]         [description]
+     */
+    public function __call($method, $args)
+    {
+        switch ($method) {
+            case 'before':
+            case 'after':
+            case 'error':
+            case 'notFound':
+                if (count($args) == 1) {
+                    Helpers\Arguments::checkCallable($args[0]);
+                    $this->callbacks[$method] = $args[0];
+                } else {
+                    throw new \InvalidArgumentException('Method $method expects only 1 argument');
+                }
+                return $this;
+            default:
+                throw new \BadMethodCallException("Bad method: $method", 1);
+        }
+    }
 }

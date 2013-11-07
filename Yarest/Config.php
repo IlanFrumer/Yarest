@@ -45,10 +45,6 @@ class Config extends ReadOnlyArray
         $regex['israel_phone'] = '/^0\d([\d]{0,1})([-]{0,1})\d{7}$/';
         
         $regex['name'] = '/^[^\d\W]\w*/';
-        
-        $regex['identifer'] = '/^[a-z]+$/i';
-        
-        $regex['password'] = '/^[\d\w]{4,20}$/';
 
         $regex['number'] = '/^\d+$/';
 
