@@ -3,13 +3,13 @@
 namespace Yarest\Parse;
 
 /**
- * Yarest Reflection class.
+ * Yarest Parse class.
  *
  * @package Yarest
  * @author Ilan Frumer <ilanfrumer@gmail.com>
  */
 
-class Reflection
+class Parse
 {
 
     private $class;
@@ -18,8 +18,11 @@ class Reflection
 
     private $methods = array();
 
+    public $invoker = null;
     public $allowed_http_methods = array();
-    public $matched_method = null;
+
+    public $errors = array();
+    public $variables = array();
 
     public function __construct($class, $config, $request)
     {
@@ -46,7 +49,7 @@ class Reflection
     public function filterMethods(array $elements)
     {
         $alias = $this->config['alias'];
-        $http_method = $this->request['http_method'];
+        $http_method = $this->request['method'];
 
         $number_of_parameters = count($elements);
         
@@ -69,32 +72,35 @@ class Reflection
                         # validate method parameters preconditions
                         list($errors, $invalid) = $this->validateParameters($method, $elements);
 
-                        exit();
-                        //$DocComment = new DocComment($method->getDocComment());
                         if (!empty($errors)) {
+                            $this->errors['arguments']['invalid_syntax'] = $errors;
+                        } elseif (! empty($invalid)) {
+                            $this->errors['arguments']['invalid_input'] = $invalid;
+                        
+                        } elseif (is_null($this->invoker)) {
+                            
+                            $docComment = new DocComment($method->getDocComment());
 
-                            $error = array();
-                            $error['class']  = $method->class;
-                            $error['method'] = $method->name;
-                            $error['parameters'] = $errors;
-                            $catched_errors[] = $error;
+                            list($errors, $invalid) = $this->validateInput($docComment['var']);
 
-                        } elseif ($valid == true) {
-                            $matched_methods[] = $method;
+                            if (!empty($errors)) {
+                                $this->errors['variables']['invalid_syntax'] = $errors;
+                            } elseif (! empty($invalid)) {
+                                $this->errors['variables']['invalid_input']  = $invalid;
+                            }
+
+                            $this->invoker = new Invoke($method, $docComment, $elements, $this->variables);
                         }
                        
-
                     } else {
 
-                        $allowed_methods[$verb] = false;
+                        $this->allowed_http_methods[$verb] = false;
                     }
 
                 }
             }
         }
-       
-        return array($catched_errors, $allowed_methods, $matched_methods);
-        
+        return false;
     }
 
     /**
@@ -103,11 +109,8 @@ class Reflection
      * @param  array            $elements [description]
      * @return boolean|array   [description]
      */
-    public function validateParameters(\ReflectionMethod $method, array $elements)
+    private function validateParameters(\ReflectionMethod $method, array $elements)
     {
-        $valid = true;
-        $errors = array();
-
         $expressions = new Expressions($this->config);
 
         foreach ($method->getParameters() as $key => $parameter) {
@@ -116,57 +119,41 @@ class Reflection
 
             if ($parameter->isOptional()) {
                 $expression = $parameter->getDefaultValue();
-                $expressions->add($expression, $input);
+                $expressions->add($parameter->name, $expression, $input);
             }
         }
 
         return $expressions->check();
     }
 
-    public function validateCommentBlock(array &$vars)
+    private function validateInput(array $vars)
     {
         $body  = $this->request['body'];
         $errors = array();
         $invalid_input = array();
 
-        foreach ($vars as &$var) {
+        $expressions = new Expressions($this->config);
+
+        foreach ($vars as $var) {
                         
             $name       = $var['name'];
             $default    = $var['default'];
             $expression = $var['expression'];
-        
+
             if (array_key_exists($name, $body)) {
-                if (!empty($expression)) {
 
-                    $input = $body[$name];
-                    $validate = $this->expression($expression, $input);
+                $this->variables[$name] = $body[$name];
 
-                    if ($expression != $var['expression']) {
-                        $var['regex'] = $expression;
-                    }
+                $expressions->add($name, $expression, $this->variables[$name]);
 
-                    if (is_string($validate)) {
-                        $errors[$name] = $validate;
-                    } elseif ($validate == false) {
-
-                        $invalid = array();
-                        $invalid = $var;
-                        $invalid['input'] = $input;
-                        $invalid['message'] = "$name: wrong input";
-
-                        $invalid_input[] = $invalid;
-                    }
-                }
             } elseif (!is_null($default)) {
-                $body[$name] = $default;
+                $this->variables[$name] = $default;
             } else {
-                $invalid = array();
-                $invalid['field'] = $var;
-                $invalid['message'] = "$name: not optional";
-                $invalid_input[] = $invalid;
+
+                $expressions->add($name, $expression);
             }
         }
 
-        return array($errors, $invalid_input, $body);
+        return $expressions->check();
     }
 }

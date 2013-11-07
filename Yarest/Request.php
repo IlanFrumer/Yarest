@@ -65,6 +65,7 @@ class Request extends ReadOnlyArray
         $this->values['uri']     = $request_uri;
         $this->values['body']    = $body;
         $this->values['token']   = $request_token;
+        $this->values['protocol'] = 'http';
 
     }
 

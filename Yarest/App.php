@@ -30,12 +30,6 @@ class App
     public $config;
 
     /**
-     * [$config description]
-     * @var \Yarest\Config
-     */
-    public $parser;
-
-    /**
      * [$routers description]
      * @var array
      */
@@ -51,9 +45,6 @@ class App
         $this->response = new Response();
         $this->request  = new Request();
         $this->config   = new Config($config);
-
-        $this->parser   = new Parser($this->config, $this->request);
-
     }
 
     /**
@@ -83,9 +74,13 @@ class App
     public function run()
     {
 
+        
+        set_error_handler(array('\Yarest\App', 'handleErrors'));
+
         while ($router = array_shift($this->routers)) {
 
             try {
+
                 $router->run();
             
             } catch (Exception\InvalidExpression $e) {
@@ -95,7 +90,18 @@ class App
             }
 
         }
+
+        restore_error_handler();
         return $this;
+    }
+
+    public static function handleErrors($errno, $errstr = '', $errfile = '', $errline = '')
+    {
+        if (!($errno & error_reporting())) {
+            return;
+        }
+
+        throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
     }
 
     /**

@@ -36,58 +36,25 @@ class Router
     }
     
     /**
-     * Creates a class and Invokes the matched method
-     * @param  array  $methods  array of ReflectionMethod object
-     * @param  array  $elements [description]
+     * [invoke description]
+     * @param  ParseInvoke $invoker [description]
+     * @return [type]               [description]
      */
-    private function invoke(array $methods, array $elements)
+    private function invoke(Parse\Invoke $invoker)
     {
 
-        $class = $methods[0]->getDeclaringClass()->name;
-        $resource = new $class();
+        $resource = $invoker->createResource();
 
-        $all_invalid_input = array();
-
-        foreach ($methods as $method) {
-            
-            // parse comment
-            $comment = $this->app->parser->parseComment($method);
-
-            // validate input
-            list($errors, $invalid_input, $body) = $this->app->parser->checkCommentVars($comment['var']);
-
-            // developer bad expressions
-            if (!empty($errors)) {
-                $output = array();
-                $output['class']  = $method->class;
-                $output['method'] = $method->name;
-                $output['errors'] = $errors;
-                throw new Exception\InvalidExpression(array("InvalidCommentExpressions" => $output));
-            }
-
-            // invalid input
-            if (!empty($invalid_input)) {
-
-                $all_invalid_input[] = $invalid_input;
-
-            } else {
-
-                break;
-            }
-
-        }
-
-        if (! empty($all_invalid_input)) {
-            $this->app->response->setStatus('412');
-            $this->app->response->setBody(array("InvalidInputs" => $all_invalid_input));
-            return;
-        }
-
-        $resource->body     = $body;
-        $resource->comment  = $comment;
+        $resource->config   = $this->app->config;
         $resource->request  = $this->app->request;
         $resource->response = $this->app->response;
-        
+
+        $server   = $this->app->request['server'];
+        $protocol = $this->app->request['protocol'];
+        $pattern  = $this->route->pattern_string;
+
+        $resource->prefix = "$protocol://$server/$pattern";
+
         // $resource['docs'] = $resource->share(function () {
             
         //     $absolute_path = $this->app->request->pathUri;
@@ -111,13 +78,13 @@ class Router
 
             # invoke user defined before method
 
-            if (array_key_exists('before', $this->route->callbacks)) {
-                call_user_func_array($this->route->callbacks['before'], array($resource));
+            if (array_key_exists('inject', $this->route->callbacks)) {
+                call_user_func_array($this->route->callbacks['inject'], array($resource));
             }
 
             # invoke class matched method
             
-            $body = $method->invokeArgs($resource, $elements);
+            $body = $invoker->invoke();
 
             if (isset($body)) {
                 $this->app->response->setBody($body);
@@ -129,6 +96,10 @@ class Router
                 call_user_func_array($this->route->callbacks['after'], array($resource));
             }
 
+        } catch (Exception\Halt $error) {
+
+            // pass
+            
         } catch (\Exception $error) {
 
             $this->app->response->setStatus('500');
@@ -143,8 +114,6 @@ class Router
         }
 
     }
-
-
 
     /**
      *
@@ -191,44 +160,49 @@ class Router
 
         ####################################
         
-        $parse = new \Parse\Reflection($class, $this->app->config, $this->app->request);
+        $parse = new Parse\Parse($class, $this->app->config, $this->app->request);
 
         $parse->filterMethods($elements);
 
-        return true;
-        $methods = Helpers\Reflection::getOwnPublicMethods($class);
-        
-        list($errors, $allowed_methods, $matched_methods) = $this->app->parser->filterMethods($methods, $elements);
 
-        if (!empty($errors)) {
-            throw new Exception\InvalidExpression(array("InvalidExpressions" => $errors));
-        }
+        if (isset($parse->errors['arguments']['invalid_syntax'])) {
 
-
-        if (empty($allowed_methods)) {
-
-            $loader->unregister();
-            return false;
+            $this->app->response->setStatus(500);
+            $this->app->response->setBody($parse->errors);
 
         }
 
-        ### from now on returns true
-    
-        if (empty($matched_methods)) {
+        if (!is_null($parse->invoker)) {
 
-            $http_method = $this->app->request['method'];
+            if (isset($parse->errors['variables']['invalid_syntax'])) {
 
-            if (array_key_exists($http_method, $allowed_methods) && $allowed_methods[$http_method]) {
-                $this->app->response->setStatus('400');
+                $this->app->response->setStatus(500);
+                $this->app->response->setBody($parse->errors);
+
+            } elseif (isset($parse->errors['variables']['invalid_input'])) {
+
+                $this->app->response->setStatus(412);
+                $this->app->response->setBody($parse->errors);
+
             } else {
-                $this->app->response->setStatus('405');
-                $this->app->response->setAllowed(array_keys($allowed_methods));
+                $this->invoke($parse->invoker);
             }
 
-        } else {
-            $this->invoke($matched_methods, $elements);
+        } elseif (isset($parse->errors['arguments']['invalid_input'])) {
+
+                $this->app->response->setStatus(400);
+                $this->app->response->setBody($parse->errors);
+
+        } elseif (!empty($parse->allowed_http_methods)) {
+
+                $this->app->response->setStatus(405);
+                $this->app->response->setAllowed(array_keys($parse->allowed_http_methods));
         }
 
+        $loader->unregister();
+
         return true;
+
+        ####################################
     }
 }

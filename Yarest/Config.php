@@ -48,6 +48,8 @@ class Config extends ReadOnlyArray
 
         $regex['number'] = '/^\d+$/';
 
+        $regex['password'] = '/^.{4,20}$/';
+
         $this->values['regex'] = $regex;
     }
 

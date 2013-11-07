@@ -16,6 +16,14 @@ class Route
      */
     
     public $pattern;
+
+    /**
+     * [$pattern_string description]
+     * @var string
+     */
+    
+    public $pattern_string;
+
     /**
      * [$namespace description]
      * @var string
@@ -44,6 +52,8 @@ class Route
     {
         $pattern   = Helpers\Uri::stripAsterisk($pattern);
         $pattern   = Helpers\Uri::uriToArray($pattern);
+        
+        $pattern_string = Helpers\Uri::arrayToURI($pattern);
 
         $namespace = Helpers\Uri::namespaceToArray($namespace);
         $namespace = Helpers\Uri::arrayToNamespace($namespace);
@@ -52,6 +62,7 @@ class Route
         $folder    = Helpers\Uri::arrayToURI($folder);
 
         $this->pattern   = $pattern;
+        $this->pattern_string = $pattern_string;
         $this->namespace = $namespace;
         $this->folder    = $folder;
     }
@@ -65,6 +76,7 @@ class Route
     {
         switch ($method) {
             case 'before':
+            case 'inject':
             case 'after':
             case 'error':
             case 'notFound':

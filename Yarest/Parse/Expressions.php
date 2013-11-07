@@ -21,30 +21,46 @@ class Expressions
 
     public function __construct(\Yarest\Config $config)
     {
-        $this->config     = $config;
+        $this->config = $config;
     }
 
-    public function add($expression, $element)
+    public function add($field, $expression, $input = null)
     {
         $expression = strtolower($expression);
-        $element    = strtolower($element);
-        $this->checks[] = array("expression" => $expression, "element" => $element);
+        $input    = strtolower($input);
+        $this->checks[] = array("field"=> $field, "expression" => $expression, "input" => $input);
     }
 
     public function check()
     {
         foreach ($this->checks as $check) {
-            if (! $this->_check($check)) {
-                $this->invalid = $check;
+
+            if ($check['field'] == null) {
+
+                $this->errors[] = "empty field name";
+
+            } elseif ($check['input'] == null) {
+
+                $this->_check($check);
+                $this->invalid[$check['field']]['message'] = "NOT OPTIONAL";
+
+            } elseif (! $this->_check($check)) {
+                $field = $check['field'];
+                unset($check['field']);
+
+                $this->invalid[$field] = $check;
+                $this->invalid[$field]['message'] = "WRONG INPUT";
+
             }
         }
-        return array($this->errors, $this->$invalid);
+
+        return array($this->errors, $this->invalid);
     }
 
     private function _check(&$check)
     {
         $expression = $check['expression'];
-        $element    = $check['element'];
+        $element    = $check['input'];
         #regex
         if (preg_match("/^\/.+\/$/", $expression, $matches)) {
 
@@ -54,7 +70,6 @@ class Expressions
             if (preg_match("/^\/:([a-z_]+)\/$/i", $expression, $matches)) {
 
                 $regexvar = $matches[1];
-
                 if (array_key_exists($regexvar, $this->config['regex'])) {
                     $check['regex'] = $regex = $this->config['regex'][$regexvar];
                 } else {
@@ -65,6 +80,7 @@ class Expressions
             }
             return preg_match($regex, $element);
         }
+
 
         # vertical bar
 
