@@ -12,24 +12,16 @@ namespace Yarest\Parse;
 class Parse
 {
 
-    private $class;
     private $config;
     private $request;
 
-    private $methods = array();
-
-    public $invoker = null;
-    public $allowed_http_methods = array();
-
-    public $errors = array();
+    public $comment   = null;
     public $variables = array();
 
-    public function __construct($class, $config, $request)
+    public function __construct($config, $request)
     {
         $this->config  = $config;
         $this->request = $request;
-
-        $this->methods = $this->getOwnPublicMethods($class);
     }
 
     private function getOwnPublicMethods($class)
@@ -46,14 +38,20 @@ class Parse
         return $methods;
     }
 
-    public function filterMethods(array $elements)
+    public function matchMethod($class, array $elements)
     {
         $alias = $this->config['alias'];
         $http_method = $this->request['method'];
 
+        $methods = $this->getOwnPublicMethods($class);
+
         $number_of_parameters = count($elements);
+
+        $invalid_syntax   = array();
+        $invalid_elements = array();
+        $allowed_http_methods = array();
         
-        foreach ($this->methods as $method) {
+        foreach ($methods as $method) {
             
             # filter by alias
             preg_match("/^[a-z]+/", $method->name, $matched);
@@ -67,39 +65,47 @@ class Parse
                     # check if matched with the request http method
                     if ($verb == $http_method) {
                         
-                        $this->allowed_http_methods[$verb] = true;
+                        $allowed_http_methods[$verb] = true;
                         
                         # validate method parameters preconditions
-                        list($errors, $invalid) = $this->validateParameters($method, $elements);
+                        list($s_errors, $p_errors) = $this->validateParameters($method, $elements);
 
-                        if (!empty($errors)) {
-                            $this->errors['arguments']['invalid_syntax'] = $errors;
-                        } elseif (! empty($invalid)) {
-                            $this->errors['arguments']['invalid_input'] = $invalid;
-                        
-                        } elseif (is_null($this->invoker)) {
+                        if (!empty($s_errors)) {
                             
-                            $docComment = new DocComment($method->getDocComment());
+                            $invalid_syntax[] = $s_errors;
 
-                            list($errors, $invalid) = $this->validateInput($docComment['var']);
+                        } elseif (! empty($p_errors)) {
+                            
+                            $invalid_elements[] = $p_errors;
 
-                            if (!empty($errors)) {
-                                $this->errors['variables']['invalid_syntax'] = $errors;
-                            } elseif (! empty($invalid)) {
-                                $this->errors['variables']['invalid_input']  = $invalid;
-                            }
+                        } else {
 
-                            $this->invoker = new Invoke($method, $docComment, $elements, $this->variables);
+                            return $method;
                         }
                        
                     } else {
-
-                        $this->allowed_http_methods[$verb] = false;
+                        ## if the request http method is not matched
+                        #  than allow method list should be passed in the header
+                        $allowed_http_methods[$verb] = false;
                     }
 
                 }
             }
         }
+
+        if (!empty($invalid_syntax)) {
+            throw new Exception\InvalidSyntax($invalid_syntax);
+        }
+
+        if (!empty($invalid_elements)) {
+            throw new Exception\InvalidElements($invalid_elements);
+        }
+
+        if (!empty($allowed_http_methods)) {
+            $allowed = array_keys($allowed_http_methods);
+            throw new Exception\MethodNotAllowed($allowed);
+        }
+
         return false;
     }
 
@@ -124,6 +130,19 @@ class Parse
         }
 
         return $expressions->check();
+    }
+
+    public function validateMethod(\ReflectionMethod $method)
+    {
+        $this->comment = new DocComment($method->getDocComment());
+
+        list($s_errors, $i_errors) = $this->validateInput($this->comment['var']);
+
+        if (!empty($s_errors)) {
+            throw new Exception\InvalidSyntax($s_errors);
+        } elseif (! empty($i_errors)) {
+            throw new Exception\InvalidInput($i_errors);
+        }
     }
 
     private function validateInput(array $vars)

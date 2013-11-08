@@ -31,12 +31,13 @@ class Request extends ReadOnlyArray
     public function __construct()
     {
 
-        $server         = self::server('SERVER_NAME');
+        $host           = self::server('HTTP_HOST');
         $php_self       = self::server('PHP_SELF');
         $document_root  = self::server('DOCUMENT_ROOT');
         $request_uri    = self::server('REQUEST_URI');
         $request_method = self::server('REQUEST_METHOD');
         $request_token  = self::server('HTTP_X_AUTH_TOKEN');
+        $https          = self::server('HTTPS');
 
         // strip the file name
         $root = dirname($php_self);
@@ -56,16 +57,20 @@ class Request extends ReadOnlyArray
         // array representation of the virtual host
         $virtual_host = Helpers\Uri::uriToArray($root);
 
+        // http://stackoverflow.com/questions/4042962/php-http-or-https-how-can-one-tell
+        $protocol = is_null($https) || $https === "Off" ? "http" : "https";
+
+        // get the request body
         $body = $this->parseInput();
 
-        $this->values['server']  = $server;
-        $this->values['path']    = $path;
-        $this->values['method']  = $request_method;
-        $this->values['virtual'] = $virtual_host;
-        $this->values['uri']     = $request_uri;
-        $this->values['body']    = $body;
-        $this->values['token']   = $request_token;
-        $this->values['protocol'] = 'http';
+        $this->values['host']     = $host;
+        $this->values['path']     = $path;
+        $this->values['method']   = $request_method;
+        $this->values['virtual']  = $virtual_host;
+        $this->values['uri']      = $request_uri;
+        $this->values['body']     = $body;
+        $this->values['token']    = $request_token;
+        $this->values['protocol'] = $protocol;
 
     }
 

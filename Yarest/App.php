@@ -69,26 +69,26 @@ class App
     }
 
     /**
-     * Iterating all routers until matched
+     * Iterating all routers until matched or until error is raised
      */
     public function run()
     {
-
-        
         set_error_handler(array('\Yarest\App', 'handleErrors'));
 
-        while ($router = array_shift($this->routers)) {
+        try {
 
-            try {
-
-                $router->run();
-            
-            } catch (Exception\InvalidExpression $e) {
-
-                $this->response->setStatus('500');
-                $this->response->setBody($e->errors);
+            while ($router = array_shift($this->routers)) {
+                if ($router->run()) {
+                    break;
+                }
             }
 
+        } catch (Exception\YarestException $e) {
+        
+            $e->setResponse($this->response);
+        
+        } catch (\Exception $e) {
+            var_dump($e);
         }
 
         restore_error_handler();
@@ -97,15 +97,11 @@ class App
 
     public static function handleErrors($errno, $errstr = '', $errfile = '', $errline = '')
     {
-        if (!($errno & error_reporting())) {
-            return;
-        }
-
-        throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
+        throw new Exception\Error($errstr, $errno, $errfile, $errline);
     }
 
     /**
-     * Responding to the client
+     * Responding to the client with headers
      */
     public function headers()
     {
@@ -116,6 +112,10 @@ class App
         }
         return $this;
     }
+
+    /**
+     * Responding to the client with body
+     */
     public function body()
     {
         echo $this->response->getBody();

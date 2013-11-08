@@ -21,22 +21,23 @@ namespace Yarest;
 
 abstract class Resource extends \Pimple
 {
-    public $response;
-    public $request;
     public $config;
-    public $fields;
+    public $request;
+    public $response;
+
     public $comment;
     public $variables;
+    
+    public $fields;
     public $prefix;
 
-    final public function __construct (array $values = array())
+    final public function __construct ()
     {
-        $this->values = $values;
+        
     }
 
     final public function halt ($status, $message = null)
     {
-        $this->response->setStatus($status, $message);
-        throw new Exception\Halt();
+        throw new Exception\Halt($status, $message);
     }
 }

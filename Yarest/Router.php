@@ -34,86 +34,6 @@ class Router
         $this->app   = $app;
         $this->route = $route;
     }
-    
-    /**
-     * [invoke description]
-     * @param  ParseInvoke $invoker [description]
-     * @return [type]               [description]
-     */
-    private function invoke(Parse\Invoke $invoker)
-    {
-
-        $resource = $invoker->createResource();
-
-        $resource->config   = $this->app->config;
-        $resource->request  = $this->app->request;
-        $resource->response = $this->app->response;
-
-        $server   = $this->app->request['server'];
-        $protocol = $this->app->request['protocol'];
-        $pattern  = $this->route->pattern_string;
-
-        $resource->prefix = "$protocol://$server/$pattern";
-
-        // $resource['docs'] = $resource->share(function () {
-            
-        //     $absolute_path = $this->app->request->pathUri;
-        //     $namespace     = Helpers::stackToNamespace($this->namespace);
-        //     $alias         = $this->app->config['alias'];
-
-        //     $docs = new Docs($this->app->request->pathUri, $namespace, $alias);
-            
-        //     return $docs->generateAllMethods();
-        // });
-
-        // $resource['doc'] = $resource->share(function () {
-                
-        //     return Docs::generateMethod($method);
-
-        // });
-        
-        try {
-
-            $this->app->response->setStatus('200');
-
-            # invoke user defined before method
-
-            if (array_key_exists('inject', $this->route->callbacks)) {
-                call_user_func_array($this->route->callbacks['inject'], array($resource));
-            }
-
-            # invoke class matched method
-            
-            $body = $invoker->invoke();
-
-            if (isset($body)) {
-                $this->app->response->setBody($body);
-            }
-
-            # invoke user defined after method
-            
-            if (array_key_exists('after', $this->route->callbacks)) {
-                call_user_func_array($this->route->callbacks['after'], array($resource));
-            }
-
-        } catch (Exception\Halt $error) {
-
-            // pass
-            
-        } catch (\Exception $error) {
-
-            $this->app->response->setStatus('500');
-            
-            if (array_key_exists('error', $this->route->callbacks)) {
-                call_user_func_array($this->route->callbacks['error'], array($error));
-            } else {
-
-                // pass it up if there is no user defined error handler
-                throw $error;
-            }
-        }
-
-    }
 
     /**
      *
@@ -160,49 +80,78 @@ class Router
 
         ####################################
         
-        $parse = new Parse\Parse($class, $this->app->config, $this->app->request);
+        $parse = new Parse\Parse($this->app->config, $this->app->request);
 
-        $parse->filterMethods($elements);
+        $method = $parse->matchMethod($class, $elements);
 
-
-        if (isset($parse->errors['arguments']['invalid_syntax'])) {
-
-            $this->app->response->setStatus(500);
-            $this->app->response->setBody($parse->errors);
-
+        if (!$method) {
+            return false;
+            $loader->unregister();
         }
-
-        if (!is_null($parse->invoker)) {
-
-            if (isset($parse->errors['variables']['invalid_syntax'])) {
-
-                $this->app->response->setStatus(500);
-                $this->app->response->setBody($parse->errors);
-
-            } elseif (isset($parse->errors['variables']['invalid_input'])) {
-
-                $this->app->response->setStatus(412);
-                $this->app->response->setBody($parse->errors);
-
-            } else {
-                $this->invoke($parse->invoker);
-            }
-
-        } elseif (isset($parse->errors['arguments']['invalid_input'])) {
-
-                $this->app->response->setStatus(400);
-                $this->app->response->setBody($parse->errors);
-
-        } elseif (!empty($parse->allowed_http_methods)) {
-
-                $this->app->response->setStatus(405);
-                $this->app->response->setAllowed(array_keys($parse->allowed_http_methods));
-        }
-
-        $loader->unregister();
-
-        return true;
 
         ####################################
+
+        $resource = new $class();
+
+        $resource->config  = $this->app->config;
+        $resource->request = $this->app->request;
+        
+        $this->route->run('before', array($resource));
+
+        $parse->validateMethod($method);
+
+        ####################################
+
+        $resource->comment   = $parse->comment;
+        $resource->variables = $parse->variables;
+
+        $fields = Helpers\Collection::arrayColumn($resource->comment['return'], 'name');
+        $resource->fields = empty($fields) ? "*" : implode(',', $fields);
+        
+        $host     = $this->app->request['host'];
+        $protocol = $this->app->request['protocol'];
+        $pattern  = Helpers\Uri::arrayToURI($this->route->pattern);
+        $uri      = Helpers\Uri::arrayToURI($this->app->request['uri']);
+
+        $resource->prefix  = "$protocol://$host/$pattern";
+        $resource->current = "$protocol://$host/$uri";
+
+        var_dump($resource);
+        exit();
+
+        // $resource['docs'] = $resource->share(function () {
+            
+        //     $absolute_path = $this->app->request->pathUri;
+        //     $namespace     = Helpers::stackToNamespace($this->namespace);
+        //     $alias         = $this->app->config['alias'];
+
+        //     $docs = new Docs($this->app->request->pathUri, $namespace, $alias);
+            
+        //     return $docs->generateAllMethods();
+        // });
+
+        // $resource['doc'] = $resource->share(function () {
+                
+        //     return Docs::generateMethod($method);
+
+        // });
+        
+        $this->route->run('inject', array($resource));
+
+        ####################################
+
+        $this->app->response->setStatus(200);
+
+        $this->route->run(function ($resource) use ($method, $elements) {
+            $method->invokeArgs($resource, $elements);
+        }, array($resource));
+
+        ####################################
+        
+        $resource->response = $this->app->response;
+        $this->route->run('after', array($resource));
+
+        ####################################
+        return true;
     }
 }

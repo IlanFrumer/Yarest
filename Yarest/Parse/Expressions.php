@@ -41,10 +41,10 @@ class Expressions
 
             } elseif ($check['input'] == null) {
 
-                $this->_check($check);
+                $this->checkEach($check);
                 $this->invalid[$check['field']]['message'] = "NOT OPTIONAL";
 
-            } elseif (! $this->_check($check)) {
+            } elseif (! $this->checkEach($check)) {
                 $field = $check['field'];
                 unset($check['field']);
 
@@ -57,7 +57,7 @@ class Expressions
         return array($this->errors, $this->invalid);
     }
 
-    private function _check(&$check)
+    private function checkEach(&$check)
     {
         $expression = $check['expression'];
         $element    = $check['input'];

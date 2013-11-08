@@ -18,13 +18,6 @@ class Route
     public $pattern;
 
     /**
-     * [$pattern_string description]
-     * @var string
-     */
-    
-    public $pattern_string;
-
-    /**
      * [$namespace description]
      * @var string
      */
@@ -40,7 +33,7 @@ class Route
      * [$callbacks description]
      * @var array
      */
-    public $callbacks = array();
+    private $callbacks = array();
 
     /**
      * [__construct description]
@@ -52,8 +45,6 @@ class Route
     {
         $pattern   = Helpers\Uri::stripAsterisk($pattern);
         $pattern   = Helpers\Uri::uriToArray($pattern);
-        
-        $pattern_string = Helpers\Uri::arrayToURI($pattern);
 
         $namespace = Helpers\Uri::namespaceToArray($namespace);
         $namespace = Helpers\Uri::arrayToNamespace($namespace);
@@ -62,7 +53,6 @@ class Route
         $folder    = Helpers\Uri::arrayToURI($folder);
 
         $this->pattern   = $pattern;
-        $this->pattern_string = $pattern_string;
         $this->namespace = $namespace;
         $this->folder    = $folder;
     }
@@ -89,6 +79,31 @@ class Route
                 return $this;
             default:
                 throw new \BadMethodCallException("Bad method: $method", 1);
+        }
+    }
+
+    public function run($callback, array $inject)
+    {
+        try {
+
+            if (is_callable($callback)) {
+                call_user_func_array($callback, $inject);
+            } elseif (array_key_exists($callback, $this->callbacks)) {
+                call_user_func_array($this->callbacks[$callback], $inject);
+            }
+
+        } catch (Exception\Halt $error) {
+
+            //let it pass
+            
+        } catch (\Exception $error) {
+            
+            if (array_key_exists('error', $this->callbacks)) {
+                call_user_func_array($this->callbacks['error'], array($error));
+            } else {
+                // pass it up if there is no user defined error handler
+                throw $error;
+            }
         }
     }
 }

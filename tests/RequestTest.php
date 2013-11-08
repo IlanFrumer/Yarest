@@ -9,23 +9,23 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     {
         $_SERVER['REQUEST_URI']    = '/';
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['SERVER_NAME']    = 'localhost';
+        $_SERVER['HTTP_HOST']    = 'localhost';
         $_SERVER['PHP_SELF']       = '/index.php';
         $_SERVER['DOCUMENT_ROOT']  = TEST_ROOT;
     }
 
     public function testRequest()
     {
-        $_SERVER['SERVER_NAME']    = 'localhost';
+        $_SERVER['HTTP_HOST']    = 'localhost';
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         $request = new Request;
-        $this->assertEquals($request['server'], 'localhost');
+        $this->assertEquals($request['host'], 'localhost');
         $this->assertEquals($request['method'], 'GET');
         $this->assertEquals($request['path'], __DIR__ . "/");
 
         $request = new Request;
-        $this->assertEquals($request['server'], 'localhost');
+        $this->assertEquals($request['host'], 'localhost');
         $this->assertEquals($request['method'], 'GET');
         $this->assertEquals($request['path'], __DIR__ . "/");
     }

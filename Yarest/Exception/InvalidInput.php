@@ -2,12 +2,7 @@
 
 namespace Yarest\Exception;
 
-class InvalidInput extends \Exception
+class InvalidInput extends YarestException
 {
-    public $errors;
-
-    public function __construct(array $errors)
-    {
-        $this->errors = $errors;
-    }
+    protected $status = "412";
 }

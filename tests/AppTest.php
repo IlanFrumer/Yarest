@@ -14,6 +14,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $y = new App();
         
         $router = $y->route('/api/*', 'Api');
-        $this->assertInstanceOf("\Yarest\Router", $router);
+        $this->assertInstanceOf("\Yarest\Route", $router);
     }
 }
