@@ -40,7 +40,7 @@ class Parse
 
     public function matchMethod($class, array $elements)
     {
-        $alias = $this->config['alias'];
+        $alias = $this->config['route.alias'];
         $http_method = $this->request['method'];
 
         $methods = $this->getOwnPublicMethods($class);

@@ -118,7 +118,17 @@ class App
      */
     public function body()
     {
-        echo $this->response->getBody();
+        $body = $this->response->getBody();
+        
+        if (is_resource($body)) {
+
+            fpassthru($body);
+
+        } else {
+
+            echo $body;
+        }
+
         return $this;
     }
 }

@@ -54,7 +54,7 @@ class Router
             
         //     $absolute_path = $this->app->request->pathUri;
         //     $namespace     = Helpers::stackToNamespace($this->namespace);
-        //     $alias         = $this->app->config['alias'];
+        //     $alias         = $this->app->config['route.alias'];
 
         //     $docs = new Docs($this->app->request->pathUri, $namespace, $alias);
             
@@ -91,7 +91,7 @@ class Router
         ####################################
 
         if (empty($derived_uri)) {
-            $derived_uri = array($this->app->config['base']);
+            $derived_uri = array($this->app->config['route.base']);
         }
 
         $namespace = $this->route->namespace;
@@ -136,6 +136,7 @@ class Router
 
         ####################################
 
+        $resource->response  = $this->app->response;
         $resource->comment   = $parse->comment;
         $resource->variables = $parse->variables;
 
@@ -145,15 +146,20 @@ class Router
 
         ####################################
 
-        $this->app->response->setStatus(200);
-
         $this->route->run(function ($resource) use ($method, $elements) {
-            $method->invokeArgs($resource, $elements);
+            
+            $resource->response->setStatus(200);
+            
+            $body = $method->invokeArgs($resource, $elements);
+            
+            if ($body) {
+                $resource->response->setBody($body);
+            }
+
         }, array($resource));
 
         ####################################
         
-        $resource->response = $this->app->response;
         $this->route->run('after', array($resource));
 
         ####################################

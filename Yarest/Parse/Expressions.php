@@ -70,8 +70,8 @@ class Expressions
             if (preg_match("/^\/:([a-z_]+)\/$/i", $expression, $matches)) {
 
                 $regexvar = $matches[1];
-                if (array_key_exists($regexvar, $this->config['regex'])) {
-                    $check['regex'] = $regex = $this->config['regex'][$regexvar];
+                if (array_key_exists($regexvar, $this->config['application.regex'])) {
+                    $check['regex'] = $regex = $this->config['application.regex'][$regexvar]['pattern'];
                 } else {
                     $this->errors[] = "invalid regex variable $regex";
                     return true;
