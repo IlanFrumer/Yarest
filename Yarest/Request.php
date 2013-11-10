@@ -40,10 +40,11 @@ class Request extends ReadOnlyArray
         $https          = self::server('HTTPS');
 
         // strip the file name
-        $root = dirname($php_self);
+        $root = Helpers\Uri::uriToArray(dirname($php_self));
+        $root = Helpers\Uri::arrayToUri($root);
 
         // absolute path of the root folder
-        $path = $document_root.$root;
+        $path = $document_root.$root."/";
 
         // strip the query string
         $request_uri = parse_url($request_uri, PHP_URL_PATH);

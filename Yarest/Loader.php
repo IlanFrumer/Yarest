@@ -40,6 +40,7 @@ class Loader
         if ($class) {
 
             $find = array_merge($this->folder, $this->namespace, $class);
+
             $file = $this->path . Helpers\Uri::arrayToUri($find) . ".php";
 
             if (file_exists($file)) {

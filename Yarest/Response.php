@@ -52,7 +52,7 @@ class Response
      * [$type description]
      * @var string
      */
-    private $type    = 'application/json';
+    private $type    = 'text/html';
 
     /**
      * [$charset description]
