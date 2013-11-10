@@ -129,11 +129,9 @@ class Uri
      * @param  array $namespace
      * @return array associative array of class and elements
      */
-    public static function uriToClassAndElements($uri, $namespace)
+    public static function uriToClassAndElements(array $uri, array $namespace)
     {
         $elements = array();
-
-        $namespace = array($namespace);
 
         foreach ($uri as $k => $v) {
             

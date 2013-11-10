@@ -1,6 +1,6 @@
 <?php
 
-namespace Yarest\Helpers;
+namespace Yarest;
 
 class LoaderTest extends \PHPUnit_Framework_TestCase
 {
@@ -9,12 +9,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertFalse(class_exists('Mock\\Main'));
         
-        $loader = Loader::loadNamespace(TEST_ROOT, "Mock", "");
-
-        $prefixes = $loader->getPrefixes();
-
-        $this->assertArrayHasKey('Mock', $prefixes);
-        $this->assertEquals(TEST_ROOT, $prefixes['Mock'][0]);
+        $loader = Loader::loadNamespace(TEST_ROOT, array("Mock"), array(""));
 
         $this->assertTrue(class_exists('Mock\\Main'));
         
@@ -27,7 +22,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
     public function testCheckValidClass()
     {
 
-        $loader = Loader::loadNamespace(TEST_ROOT, "Mock", "");
+        $loader = Loader::loadNamespace(TEST_ROOT, array("Mock"), array(""));
 
         $abstract = "\\Yarest\\Resource";
         

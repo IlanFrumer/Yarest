@@ -108,7 +108,7 @@ class UriTest extends \PHPUnit_Framework_TestCase
 
         $uri = Uri::uriToArray('/sToRe/gooGLE/likes');
 
-        $namespace = "Api";
+        $namespace = array("Api");
 
         list($class, $elements) = Uri::uriToClassAndElements($uri, $namespace);
 

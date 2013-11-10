@@ -35,11 +35,44 @@ class Router
         $this->route = $route;
     }
 
+    
+
+    public function inject(Resource $resource)
+    {
+        $fields = Helpers\Collection::arrayColumn($resource->comment['return'], 'name');
+        $resource->fields = empty($fields) ? "*" : implode(',', $fields);
+        
+        $host     = $this->app->request['host'];
+        $protocol = $this->app->request['protocol'];
+        $pattern  = Helpers\Uri::arrayToURI($this->route->pattern);
+        $uri      = Helpers\Uri::arrayToURI($this->app->request['uri']);
+
+        $resource->prefix  = "$protocol://$host/$pattern";
+        $resource->current = "$protocol://$host/$uri";
+
+        // $resource['docs'] = $resource->share(function () {
+            
+        //     $absolute_path = $this->app->request->pathUri;
+        //     $namespace     = Helpers::stackToNamespace($this->namespace);
+        //     $alias         = $this->app->config['alias'];
+
+        //     $docs = new Docs($this->app->request->pathUri, $namespace, $alias);
+            
+        //     return $docs->generateAllMethods();
+        // });
+
+        // $resource['doc'] = $resource->share(function () {
+                
+        //     return Docs::generateMethod($method);
+
+        // });
+
+    }
+    
     /**
      *
      * @return boolean If no more routers should be dispatched
      */
-    
     public function run()
     {
         
@@ -71,9 +104,9 @@ class Router
         $namespace = $this->route->namespace;
         $folder    = $this->route->folder;
 
-        $loader = Helpers\Loader::loadNamespace($path, $namespace, $folder);
+        $loader = Loader::loadNamespace($path, $namespace, $folder);
 
-        if (!Helpers\Loader::checkValidClass($class, '\Yarest\Resource')) {
+        if (!Loader::checkValidClass($class, '\Yarest\Resource')) {
             $loader->unregister();
             return false;
         }
@@ -92,6 +125,7 @@ class Router
         ####################################
 
         $resource = new $class();
+        $loader->unregister();
 
         $resource->config  = $this->app->config;
         $resource->request = $this->app->request;
@@ -105,36 +139,7 @@ class Router
         $resource->comment   = $parse->comment;
         $resource->variables = $parse->variables;
 
-        $fields = Helpers\Collection::arrayColumn($resource->comment['return'], 'name');
-        $resource->fields = empty($fields) ? "*" : implode(',', $fields);
-        
-        $host     = $this->app->request['host'];
-        $protocol = $this->app->request['protocol'];
-        $pattern  = Helpers\Uri::arrayToURI($this->route->pattern);
-        $uri      = Helpers\Uri::arrayToURI($this->app->request['uri']);
-
-        $resource->prefix  = "$protocol://$host/$pattern";
-        $resource->current = "$protocol://$host/$uri";
-
-        var_dump($resource);
-        exit();
-
-        // $resource['docs'] = $resource->share(function () {
-            
-        //     $absolute_path = $this->app->request->pathUri;
-        //     $namespace     = Helpers::stackToNamespace($this->namespace);
-        //     $alias         = $this->app->config['alias'];
-
-        //     $docs = new Docs($this->app->request->pathUri, $namespace, $alias);
-            
-        //     return $docs->generateAllMethods();
-        // });
-
-        // $resource['doc'] = $resource->share(function () {
-                
-        //     return Docs::generateMethod($method);
-
-        // });
+        $this->inject($resource);
         
         $this->route->run('inject', array($resource));
 

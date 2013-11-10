@@ -30,6 +30,7 @@ abstract class Resource extends \Pimple
     
     public $fields;
     public $prefix;
+    public $current;
 
     final public function __construct ()
     {

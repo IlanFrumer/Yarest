@@ -19,13 +19,13 @@ class Route
 
     /**
      * [$namespace description]
-     * @var string
+     * @var array
      */
     public $namespace;
 
     /**
      * [$folder description]
-     * @var string
+     * @var array
      */
     public $folder;
 
@@ -44,13 +44,10 @@ class Route
     public function __construct($pattern, $namespace, $folder)
     {
         $pattern   = Helpers\Uri::stripAsterisk($pattern);
+
         $pattern   = Helpers\Uri::uriToArray($pattern);
-
         $namespace = Helpers\Uri::namespaceToArray($namespace);
-        $namespace = Helpers\Uri::arrayToNamespace($namespace);
-
         $folder    = Helpers\Uri::uriToArray($folder);
-        $folder    = Helpers\Uri::arrayToURI($folder);
 
         $this->pattern   = $pattern;
         $this->namespace = $namespace;
