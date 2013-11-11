@@ -88,7 +88,9 @@ class App
             $e->setResponse($this->response);
         
         } catch (\Exception $e) {
-            var_dump($e);
+
+            $this->response->setBody($e->getMessage());
+            $this->response->setStatus(500);
         }
 
         restore_error_handler();

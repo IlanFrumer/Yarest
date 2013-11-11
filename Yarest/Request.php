@@ -92,6 +92,7 @@ class Request extends ReadOnlyArray
         }
 
         $params = json_decode(preg_replace('/\'/', '"', $input), true);
+
         return $params ?: array();
     }
 }

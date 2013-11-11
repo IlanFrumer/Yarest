@@ -97,7 +97,6 @@ class DocComment extends \Yarest\ReadOnlyArray
                         $values = Collection::mapAssoc($map, $values);
 
                     }
-                    
                     $this->values[$param][] = $values;
                 }
                 

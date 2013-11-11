@@ -94,16 +94,16 @@ class Parse
         }
 
         if (!empty($invalid_syntax)) {
-            throw new Exception\InvalidSyntax($invalid_syntax);
+            throw new \Yarest\Exception\InvalidSyntax($invalid_syntax);
         }
 
         if (!empty($invalid_elements)) {
-            throw new Exception\InvalidElements($invalid_elements);
+            throw new \Yarest\Exception\InvalidElements($invalid_elements);
         }
 
         if (!empty($allowed_http_methods)) {
             $allowed = array_keys($allowed_http_methods);
-            throw new Exception\MethodNotAllowed($allowed);
+            throw new \Yarest\Exception\MethodNotAllowed($allowed);
         }
 
         return false;
@@ -139,9 +139,9 @@ class Parse
         list($s_errors, $i_errors) = $this->validateInput($this->comment['var']);
 
         if (!empty($s_errors)) {
-            throw new Exception\InvalidSyntax($s_errors);
+            throw new \Yarest\Exception\InvalidSyntax($s_errors);
         } elseif (! empty($i_errors)) {
-            throw new Exception\InvalidInput($i_errors);
+            throw new \Yarest\Exception\InvalidInput($i_errors);
         }
     }
 
@@ -163,7 +163,9 @@ class Parse
 
                 $this->variables[$name] = $body[$name];
 
-                $expressions->add($name, $expression, $this->variables[$name]);
+                if (!is_null($expression)) {
+                    $expressions->add($name, $expression, $this->variables[$name]);
+                }
 
             } elseif (!is_null($default)) {
                 $this->variables[$name] = $default;

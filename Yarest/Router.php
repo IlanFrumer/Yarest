@@ -153,7 +153,7 @@ class Router
             
             $body = $method->invokeArgs($resource, $elements);
             
-            if ($body) {
+            if (!is_null($body)) {
                 $resource->response->setBody($body);
             }
 
