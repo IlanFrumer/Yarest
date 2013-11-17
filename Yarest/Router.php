@@ -130,15 +130,15 @@ class Router
 
         $resource->config  = $this->app->config;
         $resource->request = $this->app->request;
-        
+        $resource->comment = $parse->getComment($method);
+
         $this->route->run('before', array($resource));
 
-        $parse->validateMethod($method);
+        $parse->validateMethod($resource->comment);
 
         ####################################
 
         $resource->response  = $this->app->response;
-        $resource->comment   = $parse->comment;
         $resource->variables = $parse->variables;
 
         $this->inject($resource);

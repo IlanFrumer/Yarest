@@ -92,6 +92,7 @@ class Route
         } catch (Exception\Halt $error) {
 
             //let it pass
+            throw $error;
             
         } catch (\Exception $error) {
             

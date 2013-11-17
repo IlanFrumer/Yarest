@@ -15,7 +15,6 @@ class Parse
     private $config;
     private $request;
 
-    public $comment   = null;
     public $variables = array();
 
     public function __construct($config, $request)
@@ -132,11 +131,14 @@ class Parse
         return $expressions->check();
     }
 
-    public function validateMethod(\ReflectionMethod $method)
+    public function getComment(\ReflectionMethod $method)
     {
-        $this->comment = new DocComment($method->getDocComment());
+        return new DocComment($method->getDocComment());
+    }
 
-        list($s_errors, $i_errors) = $this->validateInput($this->comment['var']);
+    public function validateMethod(DocComment $comment)
+    {
+        list($s_errors, $i_errors) = $this->validateInput($comment['var']);
 
         if (!empty($s_errors)) {
             throw new \Yarest\Exception\InvalidSyntax($s_errors);
