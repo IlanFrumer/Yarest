@@ -170,10 +170,16 @@ class Parse
                 }
 
             } elseif (!is_null($default)) {
+
                 $this->variables[$name] = $default;
+
+            } elseif (!is_null($expression)) {
+                
+                $expressions->add($name, $expression);
+                
             } else {
 
-                $expressions->add($name, $expression);
+                $expressions->add($name);
             }
         }
 

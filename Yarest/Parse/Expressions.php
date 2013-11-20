@@ -24,10 +24,8 @@ class Expressions
         $this->config = $config;
     }
 
-    public function add($field, $expression, $input = null)
+    public function add($field, $expression = null, $input = null)
     {
-        $expression = strtolower($expression);
-        $input    = strtolower($input);
         $this->checks[] = array("field"=> $field, "expression" => $expression, "input" => $input);
     }
 
@@ -41,7 +39,10 @@ class Expressions
 
             } elseif ($check['input'] == null) {
 
-                $this->checkEach($check);
+                if ($check['expression'] != null) {
+                    $this->checkEach($check);
+                }
+
                 $this->invalid[$check['field']]['message'] = "NOT OPTIONAL";
 
             } elseif (! $this->checkEach($check)) {
@@ -59,8 +60,8 @@ class Expressions
 
     private function checkEach(&$check)
     {
-        $expression = $check['expression'];
-        $element    = $check['input'];
+        $expression = strtolower($check['expression']);
+        $element    = strtolower($check['input']);
         #regex
         if (preg_match("/^\/.+\/$/", $expression, $matches)) {
 
