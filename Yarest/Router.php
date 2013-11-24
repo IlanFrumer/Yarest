@@ -131,6 +131,7 @@ class Router
         $resource->config  = $this->app->config;
         $resource->request = $this->app->request;
         $resource->comment = $parse->getComment($method);
+        $resource->elements = $elements;
 
         $this->route->run('before', array($resource));
 

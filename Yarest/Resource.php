@@ -25,6 +25,7 @@ abstract class Resource extends \Pimple
     public $request;
     public $response;
 
+    public $elements = array();
     public $comment;
     public $variables;
     
