@@ -97,7 +97,8 @@ class Route
         } catch (\Exception $error) {
             
             if (array_key_exists('error', $this->callbacks)) {
-                call_user_func_array($this->callbacks['error'], array($error, $inject));
+                array_unshift($inject, $error);
+                call_user_func_array($this->callbacks['error'], $inject);
             } else {
                 // pass it up if there is no user defined error handler
                 throw $error;
