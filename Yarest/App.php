@@ -84,7 +84,7 @@ class App
             }
 
         } catch (Exception\YarestException $e) {
-        
+            
             $e->setResponse($this->response);
         
         } catch (\Exception $e) {

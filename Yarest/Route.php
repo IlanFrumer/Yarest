@@ -89,7 +89,7 @@ class Route
                 call_user_func_array($this->callbacks[$callback], $inject);
             }
 
-        } catch (Exception\Halt $error) {
+        } catch (Exception\YarestException $error) {
 
             //let it pass
             throw $error;
