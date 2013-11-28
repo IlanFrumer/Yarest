@@ -160,7 +160,7 @@ class Parse
             $value = $body[$name];
 
             if (!is_null($expression)) {
-                $expressions->add($name, $expression, $var['value']);
+                $expressions->add($name, $expression, $value);
             }
 
         } elseif (!is_null($default)) {
