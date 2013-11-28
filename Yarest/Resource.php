@@ -78,16 +78,49 @@ abstract class Resource extends \Pimple
 
     }
 
-    final public function fields($data, $offset = null)
+    final public function offset(array $array, $offset = 0)
     {
-                
-        if (!is_null($offset)) {
-            $data = array_map(function ($item) use ($offset) {
-                $arr = preg_split("/\s+/", $item);
-                return isset($arr[$offset]) ? $arr[$offset] : null;
-            }, $data);
+        return array_map(function ($item) use ($offset) {
+            $arr = preg_split("/\s+/", $item);
+            return isset($arr[$offset]) ? $arr[$offset] : null;
+        }, $array);
+    }
+
+    final public function toComma(array $array)
+    {
+        return empty($data) ? "*" : implode(',', $data);
+    }
+
+    final public function toSet(array $array)
+    {
+        $set = array();
+        $params = array();
+
+        foreach ($array as $key => $value) {
+             $set[] = "$key = ?";
+             $params[] = $value;
         }
 
-        return empty($data) ? "*" : implode(',', $data);
+        $set = implode(",", $set);
+
+        return array($set, $params);
+    }
+
+    final public function found($object, $message = null)
+    {
+        if ($object) {
+            return $object;
+        } else {
+            $this->response->setStatus(404, $message);
+        }
+    }
+
+    final public function qmarks($times)
+    {
+        for ($i=0; $i < $times; $i++) {
+            $qmarks[] = '?';
+        }
+
+        return "(" . implode(',', $qmarks) . ")";
     }
 }
