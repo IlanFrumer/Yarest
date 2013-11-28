@@ -28,9 +28,7 @@ abstract class Resource extends \Pimple
     public $elements = array();
     public $data;
     public $vars;
-    public $group;
-    
-    public $fields;
+
     public $prefix;
     public $current;
 
@@ -78,5 +76,18 @@ abstract class Resource extends \Pimple
             throw new Exception\FileNotFound(array("path" => $path, "file" => $file));
         }
 
+    }
+
+    final public function fields($data, $offset = null)
+    {
+                
+        if (!is_null($offset)) {
+            $data = array_map(function ($item) use ($offset) {
+                $arr = preg_split("/\s+/", $item);
+                return isset($arr[$offset]) ? $arr[$offset] : null;
+            }, $data);
+        }
+
+        return empty($data) ? "*" : implode(',', $data);
     }
 }

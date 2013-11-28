@@ -14,11 +14,12 @@ use \Yarest\Helpers\Collection as Collection;
 
 class DocComment extends \Yarest\ReadOnlyArray
 {
+    public $groups = array();
+
     public function __construct($comment)
     {
         $this->values['var']    = array();
         $this->values['return'] = array();
-        $this->values['group']  = array();
 
         $lines = $this->commentSplit($comment);
 
@@ -96,20 +97,14 @@ class DocComment extends \Yarest\ReadOnlyArray
                     } else {
 
                         if ($param == 'var') {
-
                             $values = $this->parseVar($values);
-
-                        } elseif ($param == 'return') {
-                            
-                            $values = preg_split('/\s+/', $values, 3);
-                            $map = array('name','type','desc');
-                            $values = Collection::mapAssoc($map, $values);
                         }
 
                         if (is_null($group)) {
                             $this->values[$param][] = $values;
                         } else {
-                            $this->values['group'][$group][$param][] = $values;
+                            $this->groups["@".$group] = true;
+                            $this->values["@".$group][$param][] = $values;
                         }
                     }
                 }

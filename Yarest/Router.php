@@ -39,9 +39,6 @@ class Router
 
     public function inject(Resource $resource)
     {
-        $fields = Helpers\Collection::arrayColumn($resource->data['return'], 'name');
-        $resource->fields = empty($fields) ? "*" : implode(',', $fields);
-        
         $host     = $this->app->request['host'];
         $protocol = $this->app->request['protocol'];
         $pattern  = Helpers\Uri::arrayToURI($this->route->pattern);
@@ -140,7 +137,6 @@ class Router
         $parse->validateMethod($resource->data);
 
         $resource->vars = $parse->vars;
-        $resource->group = $parse->group;
 
         ####################################
 

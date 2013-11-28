@@ -15,7 +15,6 @@ class Parse
     private $config;
     private $request;
     public $vars = array();
-    public $group = array();
 
     public function __construct($config, $request)
     {
@@ -186,19 +185,20 @@ class Parse
         $invalid_input = array();
 
         $expressions = new Expressions($this->config);
+        
+        foreach ($comment->groups as $group => $true) {
+            if (isset($comment[$group]['var'])) {
 
-        foreach ($comment['group'] as $groupname => $group) {
-            if (isset($group['var'])) {
-                foreach ($group['var'] as $key => $var) {
+                foreach ($comment[$group]['var'] as $var) {
                     
                     list($name, $value) = $this->validateVar($var, $expressions);
-                    $this->group[$groupname][$name] = $value;
+                    $this->vars[$group][$name] = $value;
 
                 }
             }
         }
 
-        foreach ($comment['var'] as $key => $var) {
+        foreach ($comment['var'] as $var) {
             list($name, $value) = $this->validateVar($var, $expressions);
             $this->vars[$name] = $value;
         }
