@@ -18,6 +18,7 @@ class DocComment extends \Yarest\ReadOnlyArray
     {
         $this->values['var']    = array();
         $this->values['return'] = array();
+        $this->values['group']  = array();
 
         $lines = $this->commentSplit($comment);
 
@@ -69,10 +70,12 @@ class DocComment extends \Yarest\ReadOnlyArray
         $at_sign = false;
         $break_line = false;
 
+        $group = null;
+
         foreach ($lines as $line) {
 
             if (strlen($line) == 0) {
-            
+                $group = null;
                 if (!empty($short)) {
                     $break_line = true;
                 }
@@ -86,18 +89,29 @@ class DocComment extends \Yarest\ReadOnlyArray
                     $param  = $matches[1];
                     $values = $matches[2];
 
-                    if ($param == 'var') {
+                    if ($param == 'group') {
 
-                        $values = $this->parseVar($values);
+                        $group = $values;
 
-                    } elseif ($param == 'return') {
-                        
-                        $values = preg_split('/\s+/', $values, 3);
-                        $map = array('name','type','desc');
-                        $values = Collection::mapAssoc($map, $values);
+                    } else {
 
+                        if ($param == 'var') {
+
+                            $values = $this->parseVar($values);
+
+                        } elseif ($param == 'return') {
+                            
+                            $values = preg_split('/\s+/', $values, 3);
+                            $map = array('name','type','desc');
+                            $values = Collection::mapAssoc($map, $values);
+                        }
+
+                        if (is_null($group)) {
+                            $this->values[$param][] = $values;
+                        } else {
+                            $this->values['group'][$group][$param][] = $values;
+                        }
                     }
-                    $this->values[$param][] = $values;
                 }
                 
             } elseif ($at_sign == false) {

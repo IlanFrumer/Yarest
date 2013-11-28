@@ -14,8 +14,8 @@ class Parse
 
     private $config;
     private $request;
-
-    public $variables = array();
+    public $vars = array();
+    public $group = array();
 
     public function __construct($config, $request)
     {
@@ -138,7 +138,7 @@ class Parse
 
     public function validateMethod(DocComment $comment)
     {
-        list($s_errors, $i_errors) = $this->validateInput($comment['var']);
+        list($s_errors, $i_errors) = $this->validateInput($comment);
 
         if (!empty($s_errors)) {
             throw new \Yarest\Exception\InvalidSyntax($s_errors);
@@ -147,40 +147,60 @@ class Parse
         }
     }
 
-    private function validateInput(array $vars)
+    private function validateVar($var, $expressions)
     {
         $body  = $this->request['body'];
+        $name       = $var['name'];
+        $default    = $var['default'];
+        $expression = $var['expression'];
+
+        $value = null;
+
+        if (array_key_exists($name, $body)) {
+
+            $value = $body[$name];
+
+            if (!is_null($expression)) {
+                $expressions->add($name, $expression, $var['value']);
+            }
+
+        } elseif (!is_null($default)) {
+
+            $value = $default;
+
+        } elseif (!is_null($expression)) {
+            
+            $expressions->add($name, $expression);
+            
+        } else {
+
+            $expressions->add($name);
+        }
+
+        return array($name, $value);
+    }
+
+    private function validateInput(DocComment $comment)
+    {
         $errors = array();
         $invalid_input = array();
 
         $expressions = new Expressions($this->config);
 
-        foreach ($vars as $var) {
-                        
-            $name       = $var['name'];
-            $default    = $var['default'];
-            $expression = $var['expression'];
+        foreach ($comment['group'] as $groupname => $group) {
+            if (isset($group['var'])) {
+                foreach ($group['var'] as $key => $var) {
+                    
+                    list($name, $value) = $this->validateVar($var, $expressions);
+                    $this->group[$groupname][$name] = $value;
 
-            if (array_key_exists($name, $body)) {
-
-                $this->variables[$name] = $body[$name];
-
-                if (!is_null($expression)) {
-                    $expressions->add($name, $expression, $this->variables[$name]);
                 }
-
-            } elseif (!is_null($default)) {
-
-                $this->variables[$name] = $default;
-
-            } elseif (!is_null($expression)) {
-                
-                $expressions->add($name, $expression);
-                
-            } else {
-
-                $expressions->add($name);
             }
+        }
+
+        foreach ($comment['var'] as $key => $var) {
+            list($name, $value) = $this->validateVar($var, $expressions);
+            $this->vars[$name] = $value;
         }
 
         return $expressions->check();
