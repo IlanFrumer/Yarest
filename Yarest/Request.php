@@ -85,13 +85,10 @@ class Request extends ReadOnlyArray
             return $_POST;
         }
 
-        if (!empty($HTTP_RAW_POST_DATA)) {
-            $input = $HTTP_RAW_POST_DATA;
-        } else {
-            $input = @file_get_contents('php://input');
-        }
+        $input = @file_get_contents('php://input');
 
-        $params = json_decode(preg_replace('/\'/', '"', $input), true);
+        $params = json_decode($input, true);
+        // $params = json_decode(preg_replace('/\'/', '"', $input), true);
 
         return $params ?: array();
     }
