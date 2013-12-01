@@ -82,7 +82,6 @@ class Route
     public function run($callback, array $inject)
     {
         try {
-
             if (is_callable($callback)) {
                 call_user_func_array($callback, $inject);
             } elseif (array_key_exists($callback, $this->callbacks)) {

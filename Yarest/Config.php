@@ -131,10 +131,13 @@ class Config implements \arrayaccess
             case 'application.regex':
                 if (is_array($value)) {
                     foreach ($value as $regex) {
-                        if (! is_array($regex) || ! array_key_exists("pattern", $regex) || false === @preg_match($regex['pattern'], "")) {
+                        if (is_array($regex) || array_key_exists("pattern", $regex)) {
+                            if (false === @preg_match($regex['pattern'], "")) {
+                                break 2;
+                            }
+                        } else {
                             break 2;
                         }
-
                     }
                     return $value;
                 }

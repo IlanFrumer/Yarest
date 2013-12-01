@@ -8,7 +8,6 @@ class RouteTest extends \PHPUnit_Framework_TestCase
     {
         $route = new Route('/api/**', '\Api', '/src');
 
-
         $this->assertEquals(array('api'), $route->pattern);
         $this->assertEquals(array('Api'), $route->namespace);
         $this->assertEquals(array('src'), $route->folder);
