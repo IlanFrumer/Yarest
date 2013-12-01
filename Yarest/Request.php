@@ -37,6 +37,7 @@ class Request extends ReadOnlyArray
         $request_uri    = self::server('REQUEST_URI');
         $request_method = self::server('REQUEST_METHOD');
         $request_token  = self::server('HTTP_X_AUTH_TOKEN');
+        $query_string   = self::server('QUERY_STRING');
         $https          = self::server('HTTPS');
 
         // strip the file name
@@ -61,6 +62,9 @@ class Request extends ReadOnlyArray
         // http://stackoverflow.com/questions/4042962/php-http-or-https-how-can-one-tell
         $protocol = is_null($https) || $https === "Off" ? "http" : "https";
 
+        // Query string into array
+        parse_str($query_string, $query);
+
         // get the request body
         $body = $this->parseInput();
 
@@ -72,6 +76,7 @@ class Request extends ReadOnlyArray
         $this->values['body']     = $body;
         $this->values['token']    = $request_token;
         $this->values['protocol'] = $protocol;
+        $this->values['query']    = $query;
 
     }
 

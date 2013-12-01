@@ -118,7 +118,7 @@ abstract class Resource extends \Pimple
     final public function qmarks($times, $plus = 0)
     {
         if (is_array($times)) {
-            $times = count($array);
+            $times = count($times);
         }
 
         $times+= $plus;
@@ -127,7 +127,7 @@ abstract class Resource extends \Pimple
             $qmarks[] = '?';
         }
 
-        return "(" . implode(',', $qmarks) . ")";
+        return implode(',', $qmarks);
     }
 
     final public function arrayKV(array $array)

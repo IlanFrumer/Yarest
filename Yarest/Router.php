@@ -127,6 +127,7 @@ class Router
 
         $resource->config  = $this->app->config;
         $resource->request = $this->app->request;
+        $resource->response  = $this->app->response;
 
         $resource->data = $parse->getComment($method);
 
@@ -139,8 +140,6 @@ class Router
         $resource->vars = $parse->vars;
 
         ####################################
-
-        $resource->response  = $this->app->response;
 
         $this->inject($resource);
         
