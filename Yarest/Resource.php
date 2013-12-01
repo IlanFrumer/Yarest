@@ -123,6 +123,8 @@ abstract class Resource extends \Pimple
 
         $times+= $plus;
         
+        $qmarks = [];
+        
         for ($i=0; $i < $times; $i++) {
             $qmarks[] = '?';
         }
