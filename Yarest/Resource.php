@@ -88,7 +88,7 @@ abstract class Resource extends \Pimple
 
     final public function toComma(array $array)
     {
-        return empty($data) ? "*" : implode(',', $data);
+        return empty($array) ? "*" : implode(',', $array);
     }
 
     final public function toSet(array $array)
@@ -115,12 +115,23 @@ abstract class Resource extends \Pimple
         }
     }
 
-    final public function qmarks($times)
+    final public function qmarks($times, $plus = 0)
     {
+        if (is_array($times)) {
+            $times = count($array);
+        }
+
+        $times+= $plus;
+        
         for ($i=0; $i < $times; $i++) {
             $qmarks[] = '?';
         }
 
         return "(" . implode(',', $qmarks) . ")";
+    }
+
+    final public function arrayKV(array $array)
+    {
+        return array(array_keys($array), array_values($array));
     }
 }
