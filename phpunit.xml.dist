@@ -24,7 +24,6 @@
       <whitelist>
         <directory suffix=".php">Yarest</directory>
         <exclude>
-            <file>Yarest/Pimple.php</file>
             <file>Yarest/ClassLoader.php</file>
         </exclude>
       </whitelist>      

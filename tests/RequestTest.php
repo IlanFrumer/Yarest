@@ -4,44 +4,54 @@ namespace Yarest;
 
 class RequestTest extends \PHPUnit_Framework_TestCase
 {
+
+    public function setUp()
+    {
+        $_SERVER['REQUEST_URI']    = '/';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['HTTP_HOST']    = 'localhost';
+        $_SERVER['PHP_SELF']       = '/index.php';
+        $_SERVER['DOCUMENT_ROOT']  = TEST_ROOT;
+    }
+
     public function testRequest()
     {
-        $_SERVER['SERVER_NAME']    = 'localhost';
+        $_SERVER['HTTP_HOST']    = 'localhost';
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         $request = new Request;
-        $this->assertEquals($request->server, 'localhost');
-        $this->assertEquals($request->method, 'GET');
-        $this->assertEquals($request->pathUri, __DIR__ . "/");
+        $this->assertEquals($request['host'], 'localhost');
+        $this->assertEquals($request['method'], 'GET');
+        $this->assertEquals($request['path'], __DIR__ . "/");
 
         $request = new Request;
-        $this->assertEquals($request->server, 'localhost');
-        $this->assertEquals($request->method, 'GET');
-        $this->assertEquals($request->pathUri, __DIR__ . "/");
+        $this->assertEquals($request['host'], 'localhost');
+        $this->assertEquals($request['method'], 'GET');
+        $this->assertEquals($request['path'], __DIR__ . "/");
     }
 
-    public function testRequestEndPoints()
+    public function testRequestURI()
     {
         ## 1
         $_SERVER['REQUEST_URI']    = '/';
 
         $request = new Request;
         
-        $this->assertEquals($request->endPoint, array());
+        $this->assertEquals($request['uri'], array());
 
         ## 2
         $_SERVER['REQUEST_URI']    = '/members/123';
 
         $request = new Request;
 
-        $this->assertEquals($request->endPoint, array('members','123'));
+        $this->assertEquals($request['uri'], array('members','123'));
 
         ## 3
         $_SERVER['REQUEST_URI']    = '/members';
 
         $request = new Request;
 
-        $this->assertEquals($request->endPoint, array('members'));
+        $this->assertEquals($request['uri'], array('members'));
 
     }
 
@@ -53,16 +63,21 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         $request = new Request;
 
-        $this->assertEquals($request->virtualHost, array());
+        $this->assertEquals($request['virtual'], array());
 
     }
 
-    /**
-     * @expectedException \Yarest\Exception\ServerMissingException
-     */
-    public function testRequestServerMissing()
+    public function testParseInput()
     {
-        $_SERVER = array();
-        $config = new Request;
+        $request = new Request;
+        $this->assertEmpty($request['body']);
+
+        $_POST = array("a"=>"b");
+        $request = new Request;
+        $this->assertEquals($_POST, $request['body']);
+
+        $_GET = array("c"=>"d");
+        $request = new Request;
+        $this->assertEquals($_GET, $request['body']);
     }
 }

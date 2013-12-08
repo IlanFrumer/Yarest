@@ -10,6 +10,7 @@ namespace Yarest;
  */
 class Router
 {
+
     /**
      * [$app description]
      * @var [type]
@@ -17,347 +18,152 @@ class Router
     private $app;
 
     /**
-     * [$pattern description]
-     * @var [type]
+     * [$response description]
+     * @var Route
      */
-    private $pattern;
+    private $route;
 
-    /**
-     * [$namespace description]
-     * @var [type]
-     */
-    private $namespace;
-
-    /**
-     * [$folder description]
-     * @var [type]
-     */
-    private $folder;
-
-    /**
-     * [$endPoint description]
-     * @var array
-     */
-    private $endPoint  = array();
-
-    /**
-     * [$class_name description]
-     * @var [type]
-     */
-    private $class_name;
-
-    /**
-     * [$elements description]
-     * @var array
-     */
-    private $elements  = array();
-
-    /**
-     * [$matchedMethod description]
-     * @var [type]
-     */
-    private $matchedMethod  = null;
-
-    /**
-     * [$allowedMethods description]
-     * @var array
-     */
-    private $allowedMethods = array();
-
-    /**
-     * [$callbacks description]
-     * @var array
-     */
-    private $callbacks = array();
 
     /**
      * [__construct description]
-     * @param App    $app       The instance of Yarest application
-     * @param array  $pattern   Router pattern
-     * @param array  $namespace Namespace of the classes
-     * @param array  $folder    A Directory relative to the root folder
+     * @param App   $app
+     * @param Route $route
      */
-    public function __construct(App $app, array $pattern, array $namespace, array $folder)
+    public function __construct(App $app, Route $route)
     {
-        $this->app       = $app;
-        $this->namespace = $namespace;
-        $this->pattern   = $pattern;
-        $this->folder    = $folder;
-
-        $this->callbacks['errors'] = array();
+        $this->app   = $app;
+        $this->route = $route;
     }
 
-    /**
-     * Matches the current router with the given pattern and creates a router stack
-     * @return boolean if Matched
-     */
-    private function matchPattern()
-    {
-
-        $requestEndPoint = $this->app->request->endPoint;
-
-        $pattern = $this->pattern;
-
-        while ($p = array_shift($pattern)) {
-            $r = array_shift($requestEndPoint);
-            if ($p != $r) {
-                return false;
-            }
-        }
-
-        $this->endPoint = $requestEndPoint;
-
-        return true;
-    }
-
-    /**
-     * Resolves the class and method elements from the end point stack
-     * 
-     * @return boolean if class exists and extends Pimple
-     */
-    private function findClass()
-    {
-
-        $class = $this->namespace;
-
-        if (empty($this->endPoint)) {
     
-            $root  = Helpers::namespaceToStack($this->app->config['root_class']);
-            $class = array_merge($class, $root);
 
-        } else {
-
-            Helpers::divideStack($this->endPoint, $class, $this->elements);
-
-        }
-
-        $this->class_name = Helpers::stackToNamespace($class);
-
-        return class_exists($this->class_name) && is_subclass_of($this->class_name, '\Yarest\Pimple');
-    }
-
-    /**
-     * Matches all available methods with the right number of arguments and with the http method request
-     * 
-     * @return boolean if matched methods with the right number of arguments
-     */
-    private function matchMethods()
+    public function inject(Resource $resource)
     {
-        $ref = new \ReflectionClass($this->class_name);
+        $host     = $this->app->request['host'];
+        $protocol = $this->app->request['protocol'];
+        $pattern  = Helpers\Uri::arrayToURI($this->route->pattern);
+        $uri      = Helpers\Uri::arrayToURI($this->app->request['uri']);
 
-        $methods = $ref->getMethods(\ReflectionMethod::IS_PUBLIC);
+        $resource->prefix  = "$protocol://$host/$pattern";
+        $resource->current = "$protocol://$host/$uri";
 
-        $methods = array_filter($methods, function ($method) {
-            return $method->class == $this->class_name;
-        });
-
-        $numberofparameters = count($this->elements);
-
-        $aliases = $this->app->config['alias'];
-
-        $allowedMethods = array();
-
-        foreach ($methods as $method) {
-            if (array_key_exists($method->name, $aliases)) {
-                if ($method->getnumberofparameters() == $numberofparameters) {
-                    
-                    $verb = $aliases[$method->name];
-
-                    $allowedMethods[] = $verb;
-
-                    if ($verb == $this->app->request->method) {
-                        $this->matchedMethod = $method;
-                        return true;
-                    }
-                }
-            }
-        }
-        $this->allowedMethods = array_unique($allowedMethods);
-
-        return !empty($this->allowedMethods);
-    }
-
-    /**
-     * Creates a class and Invokes the matched method
-     */
-    
-    private function invokeMethod()
-    {
-        $this->app->response->setStatus('200');
-
-        $resource = new $this->class_name;
-
-        $docComments = $this->matchedMethod->getDocComment();
-
-        ## injecting stuff
-
-        $resource->request  = $this->app->request;
-        $resource->response = $this->app->response;
-
-        $resource['docs'] = $resource->share(function () {
+        // $resource['docs'] = $resource->share(function () {
             
-            $absolute_path = $this->app->request->pathUri;
-            $namespace     = Helpers::stackToNamespace($this->namespace);
-            $aliases       = $this->app->config['alias'];
+        //     $absolute_path = $this->app->request->pathUri;
+        //     $namespace     = Helpers::stackToNamespace($this->namespace);
+        //     $alias         = $this->app->config['route.alias'];
 
-            $docs = new Docs($this->app->request->pathUri, $namespace, $aliases);
+        //     $docs = new Docs($this->app->request->pathUri, $namespace, $alias);
             
-            return $docs->generateAllMethods();
-        });
+        //     return $docs->generateAllMethods();
+        // });
 
-        $resource['doc'] = $resource->share(function () {
+        // $resource['doc'] = $resource->share(function () {
                 
-            return Docs::generateMethod($this->matchedMethod);
+        //     return Docs::generateMethod($method);
 
-        });
+        // });
 
-        /*
-        $resource->auth
-        $resource->fields
-        $resource->fields
-        $resource->fields
-
-        */
-       
-        try {
-
-            # invoke user defined before method
-            
-            if (array_key_exists('before', $this->callbacks)) {
-                call_user_func_array($this->callbacks['before'], array($resource));
-            }
-
-            # invoke class matched method
-            
-            $body = $this->matchedMethod->invokeArgs($resource, $this->elements);
-
-            # invoke user defined after method
-            
-            if (array_key_exists('after', $this->callbacks)) {
-                call_user_func_array($this->callbacks['after'], array($resource));
-            }
-
-        } catch (\Exception $error) {
-
-            $this->app->response->setStatus('500');
-            
-            if (array_key_exists('error', $this->callbacks)) {
-                call_user_func_array($this->callbacks['error'], array($error));
-            }
-            
-            echo "error";
-        }
-
-        if (isset($body)) {
-            $this->app->response->setBody($body);
-        }
     }
-
-
+    
     /**
-     * phase 0: Match the router pattern with the end point
-     * phase 1: Match the appropriate class (autoloading)
-     * phase 2: Match end point appropriate class methods
-     * phase 3: If found invokes matched method
-     *          else sets response to 405 with the allowed method list
-     * 
-     * If router fails before phase 3 than it returns false
-     * Notice: On phase 3, the router returns true even if no matched method was invoked
-     *         but there are other methods that responses to other HTTP methods
      *
-     * @return boolean If Methods found
-     */
-    
-    /**
-     * [before description]
-     * @param  object $callable
-     * @return Router the same instance for method chaining
-     */
-    public function before($callable)
-    {
-        if (!is_object($callable) || !method_exists($callable, '__invoke')) {
-            throw new \InvalidArgumentException('Service definition is not a Closure or invokable object.');
-        }
-        $this->callbacks['before'] = $callable;
-
-        return $this;
-    }
-
-    /**
-     * [after description]
-     * @param  object $callable
-     * @return Router the same instance for method chaining
-     */
-    public function after($callable)
-    {
-        if (!is_object($callable) || !method_exists($callable, '__invoke')) {
-            throw new \InvalidArgumentException('Service definition is not a Closure or invokable object.');
-        }
-
-        $this->callbacks['after'] = $callable;
-        return $this;
-    }
-
-    /**
-     * [error description].
-     * 
-     * Allow Multiple errors with differnt Exception class
-     * @param  object $callable
-     * @return Router the same instance for method chaining
-     */
-    public function error($callable)
-    {
-        if (!is_object($callable) || !method_exists($callable, '__invoke')) {
-            throw new \InvalidArgumentException('Service definition is not a Closure or invokable object.');
-        }
-        $this->callbacks['error'] = $callable;
-        return $this;
-    }
-    
-    /**
-     * [run description]
-     * @return [type]
+     * @return boolean If no more routers should be dispatched
      */
     public function run()
     {
-        # Phase 0:
+        
+        ####################################
 
-        if (!$this->matchPattern()) {
+        $uri    = $this->app->request['uri'];
+
+        $pattern   = $this->route->pattern;
+
+        $derived_uri = Helpers\Uri::matchPattern($uri, $pattern);
+
+        if ($derived_uri === false) {
             return false;
         }
 
+        ####################################
 
-        ## Phase 1:
+        if (empty($derived_uri)) {
+            $derived_uri = array($this->app->config['route.base']);
+        }
 
-        $loader = new ClassLoader();
-        $namespaceUri    = Helpers::stackToNamespace($this->namespace);
-        $namespaceFolder = $this->app->request->pathUri . Helpers::stackToURI($this->folder);
-        $loader->add($namespaceUri, $namespaceFolder);
-        $loader->register();
+        $namespace = $this->route->namespace;
 
-        if (!$this->findClass()) {
+        list($class, $elements) = Helpers\Uri::uriToClassAndElements($derived_uri, $namespace);
+
+        ####################################
+
+        $path      = $this->app->request['path'];
+        $namespace = $this->route->namespace;
+        $folder    = $this->route->folder;
+
+        $loader = Loader::loadNamespace($path, $namespace, $folder);
+
+        if (!Loader::checkValidClass($class, '\Yarest\Resource')) {
             $loader->unregister();
             return false;
         }
 
-        ## Phase 2:
 
-        if (!$this->matchMethods()) {
-            return false;
-        }
-
-        ## Phase 3:
+        ####################################
         
-        if (is_null($this->matchedMethod)) {
+        $parse = new Parse\Parse($this->app->config, $this->app->request);
 
-            $this->app->response->setStatus('405');
-            $this->app->response->setAllowed($this->allowedMethods);
+        $method = $parse->matchMethod($class, $elements);
 
-        } else {
-            
-            $this->invokeMethod();
+        if (!$method) {
+            return false;
+            $loader->unregister();
         }
 
+        ####################################
+
+        $resource = new $class();
+        $loader->unregister();
+
+        $resource->config  = $this->app->config;
+        $resource->request = $this->app->request;
+        $resource->response  = $this->app->response;
+
+        $resource->data = $parse->getComment($method);
+
+        $resource->elements = $elements;
+
+        $this->route->run('before', array($resource));
+
+        $parse->validateMethod($resource->data);
+
+        $resource->vars = $parse->vars;
+
+        ####################################
+
+        $this->inject($resource);
+        
+        $this->route->run('inject', array($resource));
+
+        ####################################
+
+        $this->route->run(function ($resource) use ($method, $elements) {
+            
+            $resource->response->setStatus(200);
+            
+            $body = $method->invokeArgs($resource, $elements);
+            
+            if (!is_null($body)) {
+                $resource->response->setBody($body);
+            }
+
+        }, array($resource));
+
+        ####################################
+        
+        $this->route->run('after', array($resource));
+
+        ####################################
         return true;
     }
 }

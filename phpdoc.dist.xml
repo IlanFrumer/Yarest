@@ -8,7 +8,6 @@
   </transformer>
   <files>
     <directory>Yarest/</directory>
-    <ignore>Yarest/Pimple.php</ignore>
     <ignore>Yarest/ClassLoader.php</ignore>
   </files>
   <transformations>

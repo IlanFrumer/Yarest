@@ -11,79 +11,126 @@ namespace Yarest;
 
 class App
 {
-    public $config;
-    public $request;
+    /**
+     * [$response description]
+     * @var \Yarest\Response
+     */
     public $response;
 
-    public $routers = array();
+    /**
+     * [$request description]
+     * @var \Yarest\Request
+     */
+    public $request;
+
+    /**
+     * [$config description]
+     * @var \Yarest\Config
+     */
+    public $config;
+
+    /**
+     * [$routers description]
+     * @var array
+     */
+    private $routers = array();
 
     /**
      * Creating config, requsest, response instances which would be passed to the routers.
      * 
      * @param array $config pass user configuration to override defaults
      */
-    
     public function __construct($config = array())
     {
-        
-        # Response must be first because it registers an error handler
         $this->response = new Response();
-
         $this->request  = new Request();
-                
         $this->config   = new Config($config);
     }
 
     /**
      * Mapping a route to a namepace.
-     * Every part of thr uri pattern after an asterisk is completly being ignored.
      * 
-     * Internally, every path is transformed into an array representation
+     * Every part of thr uri pattern after an asterisk is completly being ignored.
      * 
      * @param string $pattern   A valid URI to match the request
      * @param string|array $namespace The root namespace
      * @param string|array $folder    OPTIONAL folder relative to the root folder
-     * 
      */
-    public function router($pattern, $namespace, $folder = array())
+    public function route($pattern, $namespace, $folder = array())
     {
+
+        $route  = new Route($pattern, $namespace, $folder);
+
+        $router = new Router($this, $route);
         
-        $pattern   = Helpers::stripAsterisk($pattern);
-        $pattern   = Helpers::uriToStack($pattern);
-
-        if (is_string($namespace)) {
-            $namespace = Helpers::namespaceToStack($namespace);
-        }
-
-        if (is_string($folder)) {
-            $folder    = Helpers::uriToStack($folder);
-        }
-        
-        $router = new Router($this, $pattern, $namespace, $folder);
-
         $this->routers[] = $router;
 
-        return $router;
+        return $route;
     }
 
     /**
-     * Iterating all routers until matched
+     * Iterating all routers until matched or until error is raised
      */
-
     public function run()
     {
-        while ($router = array_shift($this->routers)) {
-            if ($router->run()) {
-                return;
+        set_error_handler(array('\Yarest\App', 'handleErrors'));
+
+        try {
+
+            while ($router = array_shift($this->routers)) {
+                if ($router->run()) {
+                    break;
+                }
             }
+
+        } catch (Exception\YarestException $e) {
+            
+            $e->setResponse($this->response);
+        
+        } catch (\Exception $e) {
+
+            $this->response->setBody($e->getMessage());
+            $this->response->setStatus(500);
         }
+
+        restore_error_handler();
+        return $this;
+    }
+
+    public static function handleErrors($errno, $errstr = '', $errfile = '', $errline = '')
+    {
+        throw new Exception\Error($errstr, $errno, $errfile, $errline);
     }
 
     /**
-     * Responding to the clients
+     * Responding to the client with headers
      */
-    public function __destruct()
+    public function headers()
     {
-        echo $this->response;
+        $headers = $this->response->getHeaders();
+
+        foreach ($headers as $header) {
+            header($header);
+        }
+        return $this;
+    }
+
+    /**
+     * Responding to the client with body
+     */
+    public function body()
+    {
+        $body = $this->response->getBody();
+        
+        if (is_resource($body)) {
+
+            fpassthru($body);
+
+        } else {
+
+            echo $body;
+        }
+
+        return $this;
     }
 }

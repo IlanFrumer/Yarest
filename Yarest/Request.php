@@ -8,38 +8,9 @@ namespace Yarest;
  * @package Yarest
  * @author Ilan Frumer <ilanfrumer@gmail.com>
  */
-class Request
+class Request extends ReadOnlyArray
 {
-    /**
-     * [$server description]
-     * @var [type]
-     */
-    public $server;
-
-    /**
-     * [$method description]
-     * @var [type]
-     */
-    public $method;
-
-    /**
-     * [$virtualHost description]
-     * @var [type]
-     */
-    public $virtualHost;
-
-    /**
-     * [$endPoint description]
-     * @var [type]
-     */
-    public $endPoint;
-
-    /**
-     * [$pathUri description]
-     * @var [type]
-     */
-    public $pathUri;
-
+    
     /**
      * [server description]
      * @param  [type] $property
@@ -50,7 +21,7 @@ class Request
         if (isset($_SERVER[$property])) {
             return $_SERVER[$property];
         } else {
-            throw new Exception\ServerMissingException('$_SERVER['."'".$property."'".'] must be set', 1);
+            return null;
         }
     }
 
@@ -60,35 +31,73 @@ class Request
     public function __construct()
     {
 
-        $server         = self::server('SERVER_NAME');
+        $host           = self::server('HTTP_HOST');
         $php_self       = self::server('PHP_SELF');
         $document_root  = self::server('DOCUMENT_ROOT');
         $request_uri    = self::server('REQUEST_URI');
         $request_method = self::server('REQUEST_METHOD');
+        $request_token  = self::server('HTTP_X_AUTH_TOKEN');
+        $query_string   = self::server('QUERY_STRING');
+        $https          = self::server('HTTPS');
 
         // strip the file name
-        $rootUri = dirname($php_self);
-
-        // strip the query string
-        $requestUri = parse_url($request_uri, PHP_URL_PATH);
+        $root = Helpers\Uri::uriToArray(dirname($php_self));
+        $document_root = Helpers\Uri::uriToArray($document_root);
 
         // absolute path of the root folder
-        $pathUri = $document_root.$rootUri;
+        $path = Helpers\Uri::arrayToUri(array_merge($document_root, $root));
 
-        // relative to root folder
-        $endPointUri = Helpers::stripURI($requestUri, $rootUri);
+        $path = empty($path) ? "/" : "/$path/";
+
+        $root = Helpers\Uri::arrayToUri($root);
+
+        // strip the query string
+        $request_uri = parse_url($request_uri, PHP_URL_PATH);
+
+        // relative to root
+        $request_uri = Helpers\Uri::substrURI($request_uri, $root);
 
         // array representation of the end point
-        $endPoint    = Helpers::uriToStack($endPointUri);
-
+        $request_uri = Helpers\Uri::uriToArray($request_uri);
+        
         // array representation of the virtual host
-        $virtualHost = Helpers::uriToStack($rootUri);
+        $virtual_host = Helpers\Uri::uriToArray($root);
 
-        $this->server          = $server;
-        $this->pathUri         = $pathUri;
-        $this->method          = $request_method;
-        $this->virtualHost     = $virtualHost;
-        $this->endPoint        = $endPoint;
+        // http://stackoverflow.com/questions/4042962/php-http-or-https-how-can-one-tell
+        $protocol = is_null($https) || $https === "Off" ? "http" : "https";
 
+        // Query string into array
+        parse_str($query_string, $query);
+
+        // get the request body
+        $body = $this->parseInput();
+
+        $this->values['host']     = $host;
+        $this->values['path']     = $path;
+        $this->values['method']   = $request_method;
+        $this->values['virtual']  = $virtual_host;
+        $this->values['uri']      = $request_uri;
+        $this->values['body']     = $body;
+        $this->values['token']    = $request_token;
+        $this->values['protocol'] = $protocol;
+        $this->values['query']    = $query;
+    }
+
+    private function parseInput()
+    {
+        if (!empty($_GET)) {
+            return $_GET;
+        }
+
+        if (!empty($_POST)) {
+            return $_POST;
+        }
+
+        $input = @file_get_contents('php://input');
+
+        $params = json_decode($input, true);
+        // $params = json_decode(preg_replace('/\'/', '"', $input), true);
+
+        return $params ?: array();
     }
 }

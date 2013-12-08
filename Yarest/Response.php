@@ -42,18 +42,17 @@ class Response
 {
     /**
      * [$status description]
-     * header('HTTP/1.1: 404 Not Found')
+     * header('HTTP/1.1 404 : Not Found')
      * @var string
      */
-    private $status  = '404 Not Found';
+    private $status  = '404 : Not Found';
 
     // header('Content-type: application/json; charset=utf-8");
     /**
      * [$type description]
-     * header('Allow: GET, POST')
      * @var string
      */
-    private $type    = 'application/json';
+    private $type    = 'text/html';
 
     /**
      * [$charset description]
@@ -63,48 +62,16 @@ class Response
 
     /**
      * [$allow description]
+     * header('Allow: GET, POST')
      * @var [type]
      */
-    private $allow   = null;
+    private $allowed  = null;
 
     /**
      * [$body description]
      * @var string
      */
     private $body    = '';
-
-
-    /**
-     * [__construct description]
-     */
-    public function __construct()
-    {
-        ob_start();
-
-        set_exception_handler(function ($exception) {
-            $this->status = '500 Application Level Exception';
-            $this->type   = 'text/html';
-
-            var_dump($exception);
-            die();
-        });
-
-        set_error_handler(function ($a, $b, $c, $d, $e) {
-            
-            $this->status = '500 Application Level Error';
-            $this->type   = 'text/html';
-
-            $error = array();
-            $error['number']  = $a;
-            $error['message'] = $b;
-            $error['file']    = $c;
-            $error['line']    = $d;
-            $error['context'] = $e;
-            var_dump($error);
-            
-            die();
-        });
-    }
     
     /**
      * [setStatus description]
@@ -113,8 +80,8 @@ class Response
      */
     public function setStatus($status, $message = null)
     {
-        if ($message) {
-            $this->status  = "$status $message";
+        if (!is_null($message)) {
+            $this->status  = "$status : $message";
         } else {
             $this->status  = (string) $status;
         }
@@ -140,20 +107,9 @@ class Response
      * [setAllowed description]
      * @param array $methods
      */
-    public function setAllowed(array $methods = array('GET'))
+    public function setAllowed(array $methods)
     {
-        $this->allow = $methods;
-    }
-
-    /**
-     * [appendBody description]
-     * @param  [type] $body
-     * @return [type]
-     */
-    public function appendBody($body)
-    {
-        $this->body.= $body;
-        return $this;
+        $this->allowed = $methods;
     }
 
     /**
@@ -167,33 +123,34 @@ class Response
     }
 
     /**
-     * [setHeaders description]
+     * [getHeaders description]
      */
-    private function setHeaders()
+    public function getHeaders()
     {
+        $headers = array();
 
-        header("HTTP/1.1: $this->status");
-        header("Content-type: $this->type; charset=$this->charset");
+        $headers[] = "HTTP/1.1 $this->status";
+        $headers[] = "Content-type: $this->type; charset=$this->charset";
         
-        if ($this->allow) {
-            header('Allow: '.implode(', ', $this->allow));
+
+        if ($this->allowed) {
+            $list = implode(", ", $this->allowed);
+            $headers[] = "Allow: $list";
         }
 
+        return $headers;
     }
 
     /**
-     * [__toString description]
-     * @return string
+     * [getBody description]
+     * @return [type]
      */
-    public function __toString()
+    public function getBody()
     {
-        $this->setHeaders();
-        flush();
-
         if (is_array($this->body)) {
-            $this->body = json_encode($this->body);
+            return json_encode($this->body);
+        } else {
+            return $this->body;
         }
-
-        return $this->body;
     }
 }

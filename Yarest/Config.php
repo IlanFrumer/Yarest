@@ -10,79 +10,175 @@ namespace Yarest;
  * @package Yarest
  * @author Ilan Frumer <ilanfrumer@gmail.com>
  */
-class Config implements \ArrayAccess
+class Config implements \arrayaccess
 {
-    /**
-     * [$config description]
-     * @var array
-     */
-    private $config = array();
+    
+    private $container = array();
 
     /**
      * [setDefaults description]
      */
     private function setDefaults()
     {
-        $this->config['root_class'] = 'Root';
+        $this['application.debug'] = true;
 
-        $this->config['debug'] = true;
+        $this['template.folder'] = "view";
 
-        $this->config['alias'] = array(
+        $this['template.extension'] = "html";
 
-            "all"    => "GET",
-            "find"   => "GET",
-            "get"    => "GET",
-            "read"   => "GET",
-            "post"   => "POST",
-            "create" => "POST",
-            "put"    => "PUT",
-            "update" => "PUT",
-            "delete" => "DELETE",
-            "remove" => "DELETE",
-            "trash"  => "DELETE"
+        $this['route.base'] = 'Root';
+
+        $this['route.alias'] = array(
+
+            "all"     => "GET",
+            "find"    => "GET",
+            "get"     => "GET",
+            "read"    => "GET",
+            "post"    => "POST",
+            "create"  => "POST",
+            "patch"   => "PATCH",
+            "options" => "OPTIONS",
+            "put"     => "PUT",
+            "update"  => "PUT",
+            "delete"  => "DELETE",
+            "remove"  => "DELETE",
+            "trash"   => "DELETE"
         );
+
+        $regex = array();
+
+        $regex['id']['pattern'] = '/^\d+$/';
+        $regex['id']['error']   = 'id error';
+        
+        $regex['email']['pattern'] = '/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/';
+        $regex['email']['error']   = 'email error';
+
+        $regex['israel.phone']['pattern'] = '/^0\d([\d]{0,1})([-]{0,1})\d{7}$/';
+        $regex['israel.phone']['error']   = 'israel.phone error';
+        
+        $regex['name']['pattern'] = '/^[^\d\W]\w*/';
+        $regex['name']['error']   = 'name error';
+
+        $regex['number']['pattern'] = '/^\d+$/';
+        $regex['number']['error']   = 'number error';
+
+        $regex['password']['pattern'] = '/^.{4,20}$/';
+        $regex['password']['error']   = 'password error';
+
+        $this['application.regex'] = $regex;
     }
 
     /**
-     * @param @param  array $user_config User configuration to override defaults
+     * @param array $user_config User configuration to override defaults
      */
-    public function __construct($user_config = array())
+    public function __construct(array $user_config = array())
     {
         $this->setDefaults();
 
-        if (!is_array($user_config)) {
-            throw new Exception\InvalidArgumentException('Config must be an array.');
+        foreach ($user_config as $key => $value) {
+            if (is_array($value)) {
+                $this[$key] = array_merge($this[$key], $value);
+            } else {
+                $this[$key] = $value;
+            }
+        }
+    }
+
+    private function validate($offset, $value)
+    {
+
+        switch ($offset) {
+            case 'application.debug':
+                if (is_bool($value)) {
+                    return $value;
+                }
+                break;
+
+            case 'template.folder':
+                if (is_string($value)) {
+                    $array = Helpers\Uri::uriToArray($value);
+                    return Helpers\Uri::arrayToUri($array);
+                }
+                break;
+
+            case 'template.extension':
+                if (is_string($value) && preg_match("/^[a-z]+$/i", $value)) {
+                    return strtolower($value);
+                }
+                break;
+            case 'route.base':
+                if (is_string($value) && preg_match("/^[a-z]+$/i", $value)) {
+                    return ucfirst($value);
+                }
+                break;
+
+            case 'route.alias':
+                if (is_array($value)) {
+                    $new = array();
+                    foreach ($value as $k => $v) {
+                        
+                        if (preg_match("/^[a-z][a-z_]+$/i", $k) && preg_match("/^[a-z]+$/i", $v)) {
+                            $new[lcfirst($k)]  = strtoupper($v);
+                        } else {
+                            break 2;
+                        }
+
+                    }
+                    return $new;
+                }
+                break;
+
+            case 'application.regex':
+                if (is_array($value)) {
+                    foreach ($value as $regex) {
+                        if (is_array($regex) || array_key_exists("pattern", $regex)) {
+                            if (false === @preg_match($regex['pattern'], "")) {
+                                break 2;
+                            }
+                        } else {
+                            break 2;
+                        }
+                    }
+                    return $value;
+                }
+                break;
+
+            default:
+                return $value;
         }
 
-        foreach ($user_config as $key => $value) {
-            if (is_integer($key)) {
-                continue;
-            }
-            if (is_array($value)) {
-                $this->config[$key] = array_merge($this->config[$key], $value);
-            } else {
-                $this->config[$key] = $value;
-            }
-        }
+        throw new \Exception("$offset wrong type or value", 1);
     }
 
     public function offsetSet($offset, $value)
     {
-        throw new Exception\ReadOnlyException();
+
+        $value = $this->validate($offset, $value);
+        
+        if (is_null($offset)) {
+            $this->container[] = $value;
+        } else {
+            $this->container[$offset] = $value;
+        }
     }
 
     public function offsetExists($offset)
     {
-        return isset($this->config[$offset]);
+        return isset($this->container[$offset]);
     }
 
     public function offsetUnset($offset)
     {
-        throw new Exception\ReadOnlyException();
+        unset($this->container[$offset]);
     }
 
     public function offsetGet($offset)
     {
-        return isset($this->config[$offset]) ? $this->config[$offset] : null;
+        return isset($this->container[$offset]) ? $this->container[$offset] : null;
+    }
+
+    public function __toString()
+    {
+        return json_encode($this->container);
     }
 }
