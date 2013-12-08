@@ -42,10 +42,14 @@ class Request extends ReadOnlyArray
 
         // strip the file name
         $root = Helpers\Uri::uriToArray(dirname($php_self));
-        $root = Helpers\Uri::arrayToUri($root);
+        $document_root = Helpers\Uri::uriToArray($document_root);
 
         // absolute path of the root folder
-        $path = $document_root.$root."/";
+        $path = Helpers\Uri::arrayToUri(array_merge($document_root, $root));
+
+        $path = empty($path) ? "/" : "/$path/";
+
+        $root = Helpers\Uri::arrayToUri($root);
 
         // strip the query string
         $request_uri = parse_url($request_uri, PHP_URL_PATH);
@@ -77,7 +81,6 @@ class Request extends ReadOnlyArray
         $this->values['token']    = $request_token;
         $this->values['protocol'] = $protocol;
         $this->values['query']    = $query;
-
     }
 
     private function parseInput()
